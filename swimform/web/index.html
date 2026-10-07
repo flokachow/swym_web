@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="referrer" content="no-referrer">
+<title>swimform</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+<a class="skip" href="#view">Skip to content</a>
+
+<header class="top">
+  <div class="wrap top-row">
+    <a class="brand" href="#/analyse" aria-label="swimform, home">swimform<span class="dot">.</span></a>
+    <nav id="nav" aria-label="Main">
+      <a href="#/analyse" data-route="analyse">Analyse</a>
+      <a href="#/drills" data-route="drills">Drills</a>
+      <a href="#/progress" data-route="progress">Progress</a>
+      <a href="#/ask" data-route="ask">Ask</a>
+      <a href="#/settings" data-route="settings">Settings</a>
+    </nav>
+    <div id="status" class="status" role="status" aria-live="polite"></div>
+  </div>
+</header>
+
+<main id="view" class="wrap" tabindex="-1">
+  <noscript><p class="notice">swimform needs JavaScript. Nothing leaves your computer until you choose to analyse a clip.</p></noscript>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <p>
+      Software that looks at a video — not a coach, not a physio, and not validated against real
+      footage. If something hurts, see a professional.
+      <a href="#/about">Responsible use</a>
+    </p>
+    <p class="fine">Not affiliated with or endorsed by Google. MIT licensed.</p>
+  </div>
+</footer>
+
+<dialog id="consent" aria-labelledby="consent-title"></dialog>
+
+<script type="module" src="/static/app.js"></script>
+</body>
+</html>

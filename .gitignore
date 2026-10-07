@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+build/
+dist/
+
+# Your footage stays yours. Never commit it.
+*.mp4
+*.mov
+*.MOV
+*.m4v
+*.avi
+*.mkv
+videos/
+
+# Secrets
+.env
+
+# Local output
+overlays/
+out/
+*.result.json
+
+# macOS
+.DS_Store

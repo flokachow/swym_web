@@ -1,0 +1,21 @@
+[project]
+name = "swimform"
+version = "0.1.0"
+description = "Freestyle swimming technique analysis from a phone video"
+readme = "README.md"
+requires-python = ">=3.9"
+license = {file = "LICENSE"}
+dependencies = ["Pillow>=10.0.0"]
+
+[project.scripts]
+swimform = "swimform.cli:main"
+
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["swimform"]
+
+[tool.setuptools.package-data]
+swimform = ["data/*.json", "web/*.html", "web/*.css", "web/*.js", "web/js/*.js", "web/js/views/*.js", "web/viewer/*"]

@@ -1,0 +1,18 @@
+{
+  "name": "swimform-drill3d",
+  "version": "0.1.0",
+  "private": true,
+  "description": "The 3D drill demonstration shown in swimform (three.js, bundled into swimform/web/viewer).",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "typecheck": "tsc -p ."
+  },
+  "devDependencies": {
+    "@types/three": "0.186.0",
+    "esbuild": "0.28.2",
+    "three": "0.186.1",
+    "typescript": "6.0.3"
+  }
+}

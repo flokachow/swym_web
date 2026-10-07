@@ -1,0 +1,519 @@
+[
+  {
+    "id": "single_arm_pull",
+    "title": "Single-arm pull",
+    "summary": "Swim with one arm at a time so you can feel exactly what that arm is doing.",
+    "how_to": [
+      "Push off with one arm stretched out in front and the other resting at your side.",
+      "Pull with the front arm only, keeping a steady kick and a still head.",
+      "Enter the hand in line with the shoulder, reach long, and finish the push by brushing your thigh.",
+      "Swim 25 m on one arm, then switch arms at the wall."
+    ],
+    "why": "With the second arm out of the way, the path of the working arm is easy to feel: where the hand enters, whether the forearm holds the water early, and whether the push ends past the hip. One arm's mistakes are far easier to notice than mid-stroke.",
+    "easier": "Wear fins to keep the hips up and breathe on every stroke.",
+    "harder": "Add a front snorkel to keep the head still, or swim a full length without pausing.",
+    "sets": "4 x 25 m per arm, 15 s rest",
+    "equipment": [
+      "fins",
+      "snorkel"
+    ],
+    "caution": "",
+    "corrects_faults": [
+      {
+        "faultId": "dropped_elbow_catch",
+        "strength": "primary"
+      },
+      {
+        "faultId": "short_stroke_finish",
+        "strength": "primary"
+      },
+      {
+        "faultId": "crossover_entry",
+        "strength": "secondary"
+      }
+    ],
+    "contraindicated_for": [],
+    "triathlon_relevance": "high",
+    "status": "draft"
+  },
+  {
+    "id": "arms_only",
+    "title": "Arms-only swimming",
+    "summary": "Swim with a pull buoy between the thighs and no kick, so the arms do all the work.",
+    "how_to": [
+      "Hold a pull buoy high between your thighs and keep your legs relaxed and still.",
+      "Swim normal freestyle with a long, steady rhythm and count your strokes per length.",
+      "Start every pull by holding the water with the forearm, and finish past the hip.",
+      "Keep your head down and let the buoy support your hips, without letting it hide a dropped elbow."
+    ],
+    "why": "Without the kick, every weakness in the pull costs speed and shows up in your stroke count. It is a quick way to build a longer, more connected stroke because the legs cannot carry you.",
+    "easier": "Swim shorter distances with more rest, or use a front snorkel so breathing is one less thing to manage.",
+    "harder": "Add hand paddles to exaggerate the feel of the water, but only once your technique holds up without them.",
+    "sets": "6 x 100 m, 20 s rest, counting strokes per length",
+    "equipment": [
+      "pull buoy",
+      "snorkel",
+      "hand paddles"
+    ],
+    "caution": "Paddles add load to the shoulders. Use them sparingly and take them off if your shoulders ache.",
+    "corrects_faults": [
+      {
+        "faultId": "dropped_elbow_catch",
+        "strength": "primary"
+      },
+      {
+        "faultId": "short_stroke_finish",
+        "strength": "secondary"
+      }
+    ],
+    "contraindicated_for": [],
+    "triathlon_relevance": "medium",
+    "status": "draft"
+  },
+  {
+    "id": "catch_up",
+    "title": "Catch-up swimming",
+    "summary": "One hand waits out in front until the other hand has finished its stroke and caught up.",
+    "how_to": [
+      "Start face down with both arms extended in front and your body long and flat.",
+      "Pull with one arm while the other stays extended and still.",
+      "As the pulling hand finishes and recovers, touch it to the waiting hand before the other arm starts.",
+      "Rotate a little with each stroke and turn your head to breathe without lifting it.",
+      "Keep the waiting hand in line with its own shoulder, not across the centre line."
+    ],
+    "why": "The pause gives you time to check your hand entry, line up your reach in front of the shoulder and start each pull with a high elbow. It also teaches a long glide at the front of the stroke.",
+    "easier": "Wear fins and kick gently; it makes the balance easier to hold.",
+    "harder": "Shorten the pause until the hands only just touch, then drop the pause and swim normally with the same reach.",
+    "sets": "8 x 25 m, 15 s rest",
+    "equipment": [
+      "fins",
+      "snorkel"
+    ],
+    "caution": "",
+    "corrects_faults": [
+      {
+        "faultId": "crossover_entry",
+        "strength": "primary"
+      },
+      {
+        "faultId": "dropped_elbow_catch",
+        "strength": "primary"
+      },
+      {
+        "faultId": "short_stroke_finish",
+        "strength": "secondary"
+      }
+    ],
+    "contraindicated_for": [],
+    "triathlon_relevance": "high",
+    "status": "draft",
+    "demo": "catch_up"
+  },
+  {
+    "id": "single_arm_freestyle",
+    "title": "Single-arm freestyle",
+    "summary": "Swim freestyle with one arm only while the other stays out in front, breathing towards the arm that is stroking.",
+    "how_to": [
+      "Push off face down with one arm extended in front and the other by your thigh.",
+      "Stroke with the arm by your thigh: recover it with a high elbow, enter in line with the shoulder, catch, then push past the hip.",
+      "Keep the front arm extended and still, and roll your hips and shoulders with every stroke.",
+      "Breathe towards the stroking side by turning your head with your body, keeping one goggle in the water.",
+      "Swim 25 m on one arm, then switch arms for the next length."
+    ],
+    "why": "Removing one arm lets you concentrate on one arm's path and on the rotation and breathing that go with it. Breathing on every stroke also teaches you to turn the head with the body instead of lifting it.",
+    "easier": "Wear fins to keep the hips up and make the balance easier.",
+    "harder": "Alternate arms every three strokes, then swim normal freestyle while keeping the same feel.",
+    "sets": "6 x 50 m (25 m on each arm), 15 s rest",
+    "equipment": [
+      "fins",
+      "snorkel"
+    ],
+    "caution": "",
+    "corrects_faults": [
+      {
+        "faultId": "dropped_elbow_catch",
+        "strength": "primary"
+      },
+      {
+        "faultId": "breathing_head_lift",
+        "strength": "primary"
+      },
+      {
+        "faultId": "insufficient_rotation",
+        "strength": "secondary"
+      },
+      {
+        "faultId": "over_rotation",
+        "strength": "secondary"
+      }
+    ],
+    "contraindicated_for": [],
+    "triathlon_relevance": "high",
+    "status": "draft",
+    "demo": "single_arm"
+  },
+  {
+    "id": "raised_leg_freestyle",
+    "title": "Freestyle with a raised leg",
+    "summary": "Lift one leg behind you while swimming freestyle to exaggerate hip stability and balance.",
+    "how_to": [
+      "Swim easy freestyle and, after a few strokes, bend one knee and lift that foot behind you out of the kick.",
+      "Keep your hips level and your lifted knee pointing down so the hips do not twist.",
+      "Keep stroking steadily and turn your head with your body to breathe.",
+      "After a few strokes put the leg down and kick again, then repeat with the other leg."
+    ],
+    "why": "With one leg out of the kick, the body has to stay balanced from the core, so a sagging hip or a swaying lower body becomes obvious. It also keeps the legs from splaying sideways, which is where a scissor kick starts.",
+    "easier": "Hold the raised leg for only three or four strokes at a time.",
+    "harder": "Stay on one leg for a full length, then swap legs on the next.",
+    "sets": "4 x 50 m, alternating legs every 25 m",
+    "equipment": [],
+    "caution": "Keep the movement small and stop if you feel any strain in your back or knees.",
+    "corrects_faults": [
+      {
+        "faultId": "low_body_position",
+        "strength": "primary"
+      },
+      {
+        "faultId": "insufficient_rotation",
+        "strength": "secondary"
+      },
+      {
+        "faultId": "scissor_kick",
+        "strength": "secondary"
+      }
+    ],
+    "contraindicated_for": [],
+    "triathlon_relevance": "medium",
+    "status": "draft"
+  },
+  {
+    "id": "free_to_back_roll",
+    "title": "Freestyle-to-back rolls",
+    "summary": "Swim a few strokes of freestyle, roll onto your back and glide, then roll over and carry on.",
+    "how_to": [
+      "Swim freestyle with a steady roll, and after a stroke keep rotating until you are lying on your back.",
+      "Glide on your back with your hips at the surface, one arm stretched overhead, and kick gently.",
+      "After a few kicks, roll back onto your front on the same side and resume freestyle.",
+      "Make each roll smooth and continuous, with your head in line with your spine the whole way."
+    ],
+    "why": "Rolling through your back teaches the body to turn around its long axis, and it exposes legs that drift apart as you rotate. A controlled roll is the same movement you want in every stroke.",
+    "easier": "Take three freestyle strokes, glide, and stop to reset your position before the next roll.",
+    "harder": "Alternate sides on successive rolls, or add one backstroke arm stroke before turning over.",
+    "sets": "6 x 50 m, 15 s rest",
+    "equipment": [
+      "fins"
+    ],
+    "caution": "",
+    "corrects_faults": [
+      {
+        "faultId": "scissor_kick",
+        "strength": "primary"
+      },
+      {
+        "faultId": "insufficient_rotation",
+        "strength": "secondary"
+      }
+    ],
+    "contraindicated_for": [],
+    "triathlon_relevance": "high",
+    "status": "draft"
+  },
+  {
+    "id": "recovery_entry_cues",
+    "title": "Recovery and entry cue drills",
+    "summary": "A family of drills that slow the recovering arm down so you can feel a leading elbow and a clean entry.",
+    "how_to": [
+      "Fingertip skim: swim freestyle but let your fingertips brush the surface as the arm swings forward with the elbow high.",
+      "Thumb-up-the-side: trail your thumb along your body from hip to armpit before reaching forward.",
+      "Pause just above the water before entry, then slide the hand forward in line with your shoulder.",
+      "Keep your normal tempo and let the elbow lead, with the hand following it."
+    ],
+    "why": "A high elbow leading the recovery keeps the arm travelling straight forward instead of swinging wide, and a controlled entry stops the hand crossing the centre line. Slowing the movement down turns an automatic habit into something you can feel.",
+    "easier": "Wear fins and a snorkel so you can focus on the arm alone.",
+    "harder": "Alternate drill strokes with normal ones (three drill, three full) while keeping the same cues.",
+    "sets": "6 x 50 m, 15 s rest, changing cue every length",
+    "equipment": [
+      "fins",
+      "snorkel"
+    ],
+    "caution": "",
+    "corrects_faults": [
+      {
+        "faultId": "low_elbow_recovery",
+        "strength": "primary"
+      },
+      {
+        "faultId": "crossover_entry",
+        "strength": "primary"
+      }
+    ],
+    "contraindicated_for": [],
+    "triathlon_relevance": "high",
+    "status": "draft"
+  },
+  {
+    "id": "fist_swimming",
+    "title": "Fist swimming",
+    "summary": "Swim with closed hands so the forearm has to do the work of catching the water.",
+    "how_to": [
+      "Make loose fists and swim easy freestyle.",
+      "Keep your elbows high and your forearms pointing down and back through the pull; the forearm is now your paddle.",
+      "Keep your normal stroke rate and do not speed up.",
+      "After 25 to 50 m, open your hands and notice the extra grip."
+    ],
+    "why": "A fist gives you far less surface to hold water, so only a forearm that is vertical early in the pull moves you forward. It teaches the high-elbow catch by making the alternative ineffective.",
+    "easier": "Alternate 25 m with fists and 25 m with open hands.",
+    "harder": "Swim with one fist and one open hand, switching every length.",
+    "sets": "4 x 50 m, 15 s rest, alternating fists and open hands",
+    "equipment": [],
+    "caution": "Keep fist sets short; the shoulders work harder when the hands give less grip.",
+    "corrects_faults": [
+      {
+        "faultId": "dropped_elbow_catch",
+        "strength": "primary"
+      }
+    ],
+    "contraindicated_for": [],
+    "triathlon_relevance": "high",
+    "status": "draft"
+  },
+  {
+    "id": "head_up_swimming",
+    "title": "Head-up swimming",
+    "summary": "Swim freestyle with the head held above the water to practise sighting and a short, strong stroke.",
+    "how_to": [
+      "Swim freestyle with your head up, eyes on a fixed point ahead and your chin just above the surface.",
+      "Keep the stroke short and the kick quick to hold your hips up.",
+      "Keep the elbow high and press down and back with the forearm.",
+      "Return to normal head-down freestyle after 10 to 15 m."
+    ],
+    "why": "Holding the head up limits how far the body can roll, so it gives swimmers who roll too far a way to feel a smaller rotation. It is also the position used to sight in open water.",
+    "easier": "Use a pull buoy to keep the hips from dropping.",
+    "harder": "Mix head-up and head-down strokes, three of each, without changing your rhythm.",
+    "sets": "4 x 15 m, 30 s rest",
+    "equipment": [
+      "pull buoy"
+    ],
+    "caution": "Hard on the neck and lower back, so keep it short. Not suitable if your hips already sink or your head already rides high; it makes both worse.",
+    "corrects_faults": [
+      {
+        "faultId": "over_rotation",
+        "strength": "secondary"
+      }
+    ],
+    "contraindicated_for": [
+      "head_position_high",
+      "breathing_head_lift",
+      "insufficient_rotation",
+      "low_body_position"
+    ],
+    "triathlon_relevance": "medium",
+    "status": "draft"
+  },
+  {
+    "id": "kick_stroke_intervals",
+    "title": "Kick-and-stroke intervals",
+    "summary": "Kick on your side for a few kicks, take one stroke as you roll to the other side, then kick again.",
+    "how_to": [
+      "Kick on your side with the lower arm extended in front and the upper arm resting on your thigh.",
+      "After six kicks, take one stroke with the upper arm and roll onto your other side.",
+      "Keep the kick small and steady from the hips through every rotation.",
+      "Make each roll a smooth quarter-turn, with the stroke starting as the body turns."
+    ],
+    "why": "Long pauses between strokes make you balance on your side, which shows whether your hips and legs stay in line as you rotate. It builds the habit of starting each stroke from the roll rather than from the arm alone.",
+    "easier": "Wear fins to keep the legs up while you find your balance.",
+    "harder": "Cut the kicks between strokes from six to four, then two, until it feels like normal swimming.",
+    "sets": "8 x 25 m, 15 s rest",
+    "equipment": [
+      "fins",
+      "snorkel"
+    ],
+    "caution": "",
+    "corrects_faults": [
+      {
+        "faultId": "low_body_position",
+        "strength": "primary"
+      },
+      {
+        "faultId": "insufficient_rotation",
+        "strength": "primary"
+      },
+      {
+        "faultId": "head_position_high",
+        "strength": "secondary"
+      }
+    ],
+    "contraindicated_for": [],
+    "triathlon_relevance": "high",
+    "status": "draft"
+  },
+  {
+    "id": "sculling",
+    "title": "Sculling for feel",
+    "summary": "Small sweeping hand movements that teach you to feel and hold the water with your forearms.",
+    "how_to": [
+      "Float with a pull buoy between your thighs and your arms out in front, elbows slightly bent, hands about shoulder-width apart.",
+      "Sweep both hands out and in again in a small figure of eight, angling the palms to push water as you go.",
+      "Keep your elbows high and still, and move only the hands and forearms.",
+      "Carry the same pressure on the palm and forearm into a slow freestyle pull."
+    ],
+    "why": "Sculling builds the sensitivity to water pressure that a high-elbow catch relies on. Better feel means you grip the water earlier and slip less.",
+    "easier": "Scull on your back with a pull buoy, where breathing is free.",
+    "harder": "Add a gentle kick and scull slowly forward.",
+    "sets": "6 x 25 m, 20 s rest",
+    "equipment": [
+      "pull buoy",
+      "fins"
+    ],
+    "caution": "Keep the movements small and relaxed, and stop if your wrists or shoulders hurt.",
+    "corrects_faults": [
+      {
+        "faultId": "dropped_elbow_catch",
+        "strength": "primary"
+      },
+      {
+        "faultId": "low_body_position",
+        "strength": "secondary"
+      }
+    ],
+    "contraindicated_for": [],
+    "triathlon_relevance": "high",
+    "status": "draft"
+  },
+  {
+    "id": "underwater_recovery",
+    "title": "Underwater-recovery swimming",
+    "summary": "Swim freestyle but bring each arm forward under the water instead of over it.",
+    "how_to": [
+      "Take a stroke and, instead of lifting the arm out, let it slide back to the front underwater, close to your body.",
+      "Keep the elbow bent and the hand relaxed as it returns, then reach into the next stroke.",
+      "Keep your kick steady and your head down.",
+      "Make sure the hand passes your hip on every push before it comes forward."
+    ],
+    "why": "With no lift out of the water, a push that stops short of the thigh is easy to feel. It makes the end of the stroke deliberate instead of rushed.",
+    "easier": "Do half a length at a time, with fins.",
+    "harder": "Swim a full length with the whole arm staying underwater.",
+    "sets": "6 x 25 m, 20 s rest",
+    "equipment": [
+      "fins",
+      "snorkel"
+    ],
+    "caution": "",
+    "corrects_faults": [
+      {
+        "faultId": "short_stroke_finish",
+        "strength": "primary"
+      },
+      {
+        "faultId": "dropped_elbow_catch",
+        "strength": "secondary"
+      }
+    ],
+    "contraindicated_for": [],
+    "triathlon_relevance": "medium",
+    "status": "draft"
+  },
+  {
+    "id": "kick_sets",
+    "title": "Kick sets",
+    "summary": "Structured kicking on your front, back and side to build a strong, compact flutter kick.",
+    "how_to": [
+      "Hold a kickboard or streamline with your arms extended and kick from the hips with loose ankles.",
+      "Keep the kick small and quick, with only a slight knee bend and the feet inside the width of your body.",
+      "Check your position: head down and hips at the surface.",
+      "Alternate front, side and back kicking lengths to balance the muscles you use."
+    ],
+    "why": "A weak or misshapen kick lets the hips sink and the feet drift apart. Regular kick work builds the hip drive and ankle flexibility that keep the legs up and in line.",
+    "easier": "Wear fins for part of the set.",
+    "harder": "Kick in streamline without a board, or kick vertically for 15 to 20 s.",
+    "sets": "8 x 50 m, 20 s rest",
+    "equipment": [
+      "fins",
+      "kickboard",
+      "ankle band"
+    ],
+    "caution": "Fins and ankle bands add load to the ankles and calves. Build up gradually.",
+    "corrects_faults": [
+      {
+        "faultId": "scissor_kick",
+        "strength": "primary"
+      },
+      {
+        "faultId": "low_body_position",
+        "strength": "primary"
+      }
+    ],
+    "contraindicated_for": [],
+    "triathlon_relevance": "high",
+    "status": "draft"
+  },
+  {
+    "id": "rolling_kick",
+    "title": "Rolling kick",
+    "summary": "Kick while rolling your body from side to side at set points.",
+    "how_to": [
+      "Kick on your side with the lower arm extended and your head resting against it.",
+      "After six kicks, roll a half-turn onto your front or the other side without stopping the kick.",
+      "Keep your legs together and moving all the way through the roll.",
+      "Turn from the hips and core, not the head."
+    ],
+    "why": "Rolling while kicking trains the body to turn around its long axis while the legs stay in a narrow line. It builds the rotation and balance that freestyle needs from the hips.",
+    "easier": "Roll a quarter-turn instead of a half-turn.",
+    "harder": "Roll every four kicks, then every two.",
+    "sets": "8 x 25 m, 15 s rest",
+    "equipment": [
+      "fins"
+    ],
+    "caution": "",
+    "corrects_faults": [
+      {
+        "faultId": "low_body_position",
+        "strength": "primary"
+      },
+      {
+        "faultId": "insufficient_rotation",
+        "strength": "primary"
+      },
+      {
+        "faultId": "scissor_kick",
+        "strength": "secondary"
+      }
+    ],
+    "contraindicated_for": [],
+    "triathlon_relevance": "high",
+    "status": "draft"
+  },
+  {
+    "id": "stroke_build",
+    "title": "Stroke build-up progression",
+    "summary": "A sequence that builds a full stroke piece by piece, from kicking on the side to normal swimming.",
+    "how_to": [
+      "Start with a short length of kicking on your side.",
+      "Add single-arm strokes, then catch-up swimming, then normal freestyle.",
+      "Use the same cue in every step: a high elbow at the catch and the hand entering in line with the shoulder.",
+      "Do each step for 25 m before moving on to the next."
+    ],
+    "why": "Linking separate drills into one progression stops you losing what you have practised the moment you swim normally. It bridges the gap between drill technique and your real stroke.",
+    "easier": "Spend two lengths on each step before moving on.",
+    "harder": "Shrink each step to 10 m so the stroke builds quickly.",
+    "sets": "One round of 4 x 25 m, then repeat 3 times with 20 s rest",
+    "equipment": [
+      "fins",
+      "snorkel"
+    ],
+    "caution": "",
+    "corrects_faults": [
+      {
+        "faultId": "dropped_elbow_catch",
+        "strength": "primary"
+      },
+      {
+        "faultId": "low_elbow_recovery",
+        "strength": "primary"
+      }
+    ],
+    "contraindicated_for": [],
+    "triathlon_relevance": "high",
+    "status": "draft"
+  }
+]

@@ -1,0 +1,120 @@
+{
+  "_doc": "Freestyle fault taxonomy. Canonical machine-readable source, consumed by both the analysis layer and the web app. A fault belongs here ONLY if it is plausibly detectable from our realistic input: a single phone camera filmed poolside through moving water. Every entry is status=candidate until a detection method is proven on real footage. Each fault carries an `elite` reference — the standard a technically excellent swimmer meets. Assessment is scored as deviation from that reference, not as a present/absent judgement, because a model asked to judge defaults to a competent-club-swimmer baseline and reports nothing.",
+  "_status_values": [
+    "candidate",
+    "detectable",
+    "rejected"
+  ],
+  "faults": [
+    {
+      "id": "crossover_entry",
+      "name": "Crossover entry",
+      "short": "Hand crosses the midline on entry",
+      "plane": "front",
+      "status": "candidate",
+      "severityHint": "high",
+      "why": "Sends the body snaking, costs distance per stroke and adds drag. Very common in self-taught triathletes.",
+      "detection": "Wrist keypoint crosses the head-hip midline axis at entry.",
+      "elite": "Hand enters and extends within the shoulder line, never crossing the head-hip midline. Even 5-10cm of crossover is a deviation."
+    },
+    {
+      "id": "dropped_elbow_catch",
+      "name": "Dropped elbow catch",
+      "short": "No early vertical forearm through the catch",
+      "plane": "side",
+      "status": "candidate",
+      "severityHint": "high",
+      "why": "The single biggest propulsion loss in freestyle: the arm pushes water down rather than back.",
+      "detection": "Elbow-wrist-shoulder angle during the catch phase. Hardest of the set: the catch is underwater and refraction degrades keypoints.",
+      "elite": "Elbow stays high and forward of the wrist through the catch; forearm vertical by roughly 45 degrees of arm travel."
+    },
+    {
+      "id": "low_elbow_recovery",
+      "name": "Low elbow recovery",
+      "short": "Arm swings wide and flat on recovery",
+      "plane": "front",
+      "status": "candidate",
+      "severityHint": "medium",
+      "why": "Wide recovery forces counter-rotation and disrupts alignment; also a shoulder-injury risk over volume.",
+      "detection": "Elbow height relative to shoulder and wrist during the recovery arc.",
+      "elite": "Elbow is the highest point of the recovering arm throughout; hand stays inside the elbow line and close to the water. Any point where the hand is higher than the elbow is a deviation."
+    },
+    {
+      "id": "scissor_kick",
+      "name": "Scissor kick",
+      "short": "Legs split laterally instead of kicking in line",
+      "plane": "front",
+      "status": "candidate",
+      "severityHint": "high",
+      "why": "Large drag penalty. Usually a symptom of crossover or over-rotation rather than a root cause, so treat the cause too.",
+      "detection": "Lateral ankle separation relative to the body line.",
+      "elite": "Feet stay within the body's width, kick driven from the hip with a loose ankle. Any lateral separation beyond hip width is a deviation."
+    },
+    {
+      "id": "low_body_position",
+      "name": "Low body position",
+      "short": "Hips and legs sinking",
+      "plane": "side",
+      "status": "candidate",
+      "severityHint": "high",
+      "why": "Dominant fault in triathletes who train in wetsuits and lose the free flotation in the pool. Large drag cost.",
+      "detection": "Hip keypoint depth relative to the shoulder line. Likely the most reliably detectable fault in this set.",
+      "elite": "Hips and heels break or nearly break the surface; the body line is flat. Hips visibly below the shoulder line is a deviation, including if it only happens during the breath."
+    },
+    {
+      "id": "head_position_high",
+      "name": "Head too high",
+      "short": "Looking forward instead of down",
+      "plane": "side",
+      "status": "candidate",
+      "severityHint": "medium",
+      "why": "Lifting the head drives the hips down; often the root cause of low body position.",
+      "detection": "Head-spine angle relative to horizontal during the non-breathing phase.",
+      "elite": "Waterline sits at the crown or upper forehead, eyes down or slightly forward. Any part of the forehead consistently clear of the water is a deviation."
+    },
+    {
+      "id": "insufficient_rotation",
+      "name": "Insufficient rotation",
+      "short": "Swimming flat",
+      "plane": "front",
+      "status": "candidate",
+      "severityHint": "medium",
+      "why": "Flat swimming shortens the stroke and blocks the lat from contributing power.",
+      "detection": "Shoulder-line roll angle across the stroke cycle.",
+      "elite": "Shoulders roll roughly 45-60 degrees each side. Under 40 degrees is a deviation."
+    },
+    {
+      "id": "over_rotation",
+      "name": "Over-rotation",
+      "short": "Rolling past roughly 60 degrees",
+      "plane": "front",
+      "status": "candidate",
+      "severityHint": "medium",
+      "why": "Costs stroke rate and destabilises the kick; frequently produces a scissor kick downstream.",
+      "detection": "Peak shoulder-line roll angle per stroke.",
+      "elite": "Shoulders roll roughly 45-60 degrees each side. Beyond 60 degrees, or rotation that stalls the kick, is a deviation."
+    },
+    {
+      "id": "short_stroke_finish",
+      "name": "Short finish",
+      "short": "Hand exits before passing the hip",
+      "plane": "side",
+      "status": "candidate",
+      "severityHint": "medium",
+      "why": "Throws away the most propulsive part of the stroke; shows up as low distance per stroke.",
+      "detection": "Wrist position at exit relative to the hip keypoint.",
+      "elite": "Hand accelerates past the hip, thumb brushing the thigh before exit. Exiting at or before the hip is a deviation."
+    },
+    {
+      "id": "breathing_head_lift",
+      "name": "Lifting to breathe",
+      "short": "Head lifts rather than rotates for air",
+      "plane": "side",
+      "status": "candidate",
+      "severityHint": "high",
+      "why": "Interrupts alignment every breath cycle. Especially costly in open water where breathing is frequent.",
+      "detection": "Vertical head displacement during the breath compared with the non-breathing baseline.",
+      "elite": "Head rotates with the body roll, one goggle stays in the water, no vertical lift and no pause in the stroke. Any vertical head rise is a deviation."
+    }
+  ]
+}
