@@ -1,6 +1,6 @@
 # Responsible use
 
-Consent notice version: 2026-10-07.1
+Consent notice version: 2026-10-07.2
 Last checked against Google's published terms: 2026-10-07
 
 swimform analyses video of a person. That raises questions about privacy,
@@ -30,9 +30,12 @@ the app.
 
 ## 2. Google's terms and your key
 
-swimform has no key of its own. Every analysis is made under **your** Gemini API
-key, so Google's terms apply to you:
-<https://ai.google.dev/gemini-api/terms>.
+swimform has no key of its own. Every analysis is made under **your** API key. This
+version is built for Google's Gemini API (we recommend it because a key is freely
+available to anyone), so Google's terms apply to you:
+<https://ai.google.dev/gemini-api/terms>. If you adapt swimform to another AI
+provider, the same cautions below apply: read that provider's terms on data use,
+free tiers, personal information and minors before sending anyone's video.
 
 Points from those terms that matter here (read the original, they can change):
 

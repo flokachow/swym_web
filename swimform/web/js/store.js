@@ -2,7 +2,7 @@
 // fail (private windows, blocked storage), so every access is guarded and the
 // app works without any of it.
 
-export const CONSENT_VERSION = "2026-10-07.1";
+export const CONSENT_VERSION = "2026-10-07.2";
 const K = {
   key: "swimform.geminiKey",
   consent: "swimform.consent",

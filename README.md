@@ -48,7 +48,7 @@ You need **Python 3.9+**, **ffmpeg**, and a **Gemini API key**.
 
 ```bash
 brew install ffmpeg
-git clone <repo-url> swimform
+git clone https://github.com/flokachow/swym_web.git swimform
 cd swimform
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
@@ -66,7 +66,10 @@ supported on a best-effort basis; the project is developed on macOS.
 
 ### Your Gemini key
 
-Get one free at <https://aistudio.google.com/apikey>. Paste it in **Settings**. It
+swimform is built for Google's Gemini API, which is the one we recommend: it takes
+video directly and a key is freely available to anyone. (Keys from other AI providers
+will not work without changing the code.) Get one free at
+<https://aistudio.google.com/apikey> and paste it in **Settings**. It
 is kept in your browser tab, or in browser storage if you tick *Remember it*, and
 sent only to the swimform server on your own machine and on to Google. It is
 never written to disk by swimform.
