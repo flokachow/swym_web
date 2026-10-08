@@ -26,7 +26,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-from . import config, gemini, measure, recommend, taxonomy
+from . import config, measure, providers, recommend, taxonomy
 
 # Per-call patience. A model that accepts a video and then goes silent used to
 # hold a run for five minutes; now it is abandoned and the next model tried.
@@ -273,7 +273,7 @@ def keypoint_prompt() -> str:
 # --------------------------------------------------------------------------
 
 def annotate(video: Path, t: float, key: str, out_dir: Path, caption: str,
-             fault_id: str, viewpoint: str) -> dict | None:
+             fault_id: str, viewpoint: str, provider: str) -> dict | None:
     """Pull the frame at t, locate landmarks, measure, render an overlay.
 
     Only the measurements that bear on this fault from this camera are kept and
@@ -285,11 +285,11 @@ def annotate(video: Path, t: float, key: str, out_dir: Path, caption: str,
         return None  # a timestamp past the last frame; skip the overlay, keep the analysis
     try:
         try:
-            kp = gemini.generate(
-                [{"text": keypoint_prompt()}, gemini.image_part(frame)],
+            kp = providers.generate(
+                provider, [{"text": keypoint_prompt()}, {"image": frame}],
                 keypoint_schema(), key, temperature=0.0, timeout=KEYPOINT_TIMEOUT_S,
             )
-        except gemini.GeminiKeyError:
+        except providers.KeyRejected:
             raise  # a bad key is not a missing overlay
         except Exception as e:  # noqa: BLE001
             # An overlay is a nice-to-have. Losing a whole analysis — which has
@@ -373,7 +373,7 @@ def analyze(video: str | Path, start: float | None = None, end: float | None = N
             fps: float | None = None, model: str | None = None,
             overlays: int | None = None, out_dir: Path | None = None,
             limit: int = 6, key: str | None = None, viewpoint: str | None = None,
-            evidence_per_fault: int | None = None) -> dict:
+            evidence_per_fault: int | None = None, provider: str | None = None) -> dict:
     """Run the full pipeline for one clip: clip -> assessment -> stills -> overlays -> drills.
 
     `key` is the caller's own Gemini key (the web app sends it per request); the
@@ -394,7 +394,9 @@ def analyze(video: str | Path, start: float | None = None, end: float | None = N
         raise AnalysisError("The end time must be after the start time.")
 
     video = Path(video).expanduser().resolve()
-    key = key or config.api_key()
+    adapter = providers.get(provider)
+    provider = adapter.id
+    key = key or config.api_key(provider)
 
     total = probe_duration(video)
     window_end = end if end is not None else total
@@ -405,8 +407,8 @@ def analyze(video: str | Path, start: float | None = None, end: float | None = N
     duration = round(max(0.0, (window_end or 0.0) - start), 1)
 
     clip = prepare_clip(video, start, end)
-    raw = gemini.generate(
-        [{"text": assessment_prompt(duration)}, gemini.video_part(clip, fps)],
+    raw = providers.generate(
+        provider, [{"text": assessment_prompt(duration)}, {"video": clip, "fps": fps, "duration": duration}],
         assessment_schema(), key, model=model, timeout=VIDEO_TIMEOUT_S,
     )
 
@@ -431,7 +433,9 @@ def analyze(video: str | Path, start: float | None = None, end: float | None = N
     result = {
         "durationSec": duration,
         "window": {"startSec": start, "endSec": window_end},
-        "engine": "gemini",
+        "provider": provider,
+        # Gemini watches the video; the others are sent still frames cut from it.
+        "mode": "video" if adapter.native_video else "frames",
         "viewpoint": read_viewpoint,
         "requestedViewpoint": viewpoint,
         "swimmerVisible": raw.get("swimmerVisible", False),
@@ -459,7 +463,7 @@ def analyze(video: str | Path, start: float | None = None, end: float | None = N
             # timestamps are relative to the trimmed clip, not the source file
             t_abs = start + a["timestamps"][0]
             caption = f"{a['faultName']} — deviation {a['deviation']:.2f}"
-            frame = annotate(video, t_abs, key, out_dir, caption, a["faultId"], read_viewpoint)
+            frame = annotate(video, t_abs, key, out_dir, caption, a["faultId"], read_viewpoint, provider)
             if frame:
                 a["measurements"] = frame.pop("measurements", [])
                 a["frame"] = frame

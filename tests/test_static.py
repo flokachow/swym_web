@@ -67,7 +67,7 @@ class TestFrontEnd(unittest.TestCase):
 
     def test_the_key_is_only_ever_sent_in_the_gemini_header(self):
         api = (WEB / "js" / "api.js").read_text()
-        self.assertIn('"X-Gemini-Key"', api)
+        self.assertIn('"X-Api-Key"', api)
         for p in SCRIPTS:
             if p.name in ("store.js",):
                 continue

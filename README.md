@@ -4,12 +4,12 @@ Film yourself swimming freestyle, from the side and from the front. swimform tel
 you what your stroke is doing wrong, shows you the frames where it happens, and
 suggests drills that fix it. Then you can ask it questions.
 
-It runs on your own computer, against your own AI API key (Gemini recommended). There is no
+It runs on your own computer, against your own AI API key (Google Gemini recommended; OpenAI and Anthropic Claude work experimentally). There is no
 account, no server of ours, and nothing that keeps your video. It is a tool you
 run, not a service you join.
 
 > **Read [docs/RESPONSIBLE_USE.md](docs/RESPONSIBLE_USE.md) before you film anyone.**
-> Your video is sent to Google for analysis, adults only, and the results are
+> Your video is sent to an AI service for analysis, adults only, and the results are
 > not coaching or medical advice. The app asks you to accept a short notice
 > before anything is sent.
 
@@ -44,7 +44,7 @@ python3 -m swimform serve --open     # then follow the steps below
 
 ## Set up (macOS)
 
-You need **Python 3.9+**, **ffmpeg**, and an **AI API key** (built for Gemini, which we recommend).
+You need **Python 3.9+**, **ffmpeg**, and an **AI API key** (Gemini recommended; see below).
 
 ```bash
 brew install ffmpeg
@@ -64,31 +64,40 @@ The app opens at <http://127.0.0.1:8787>. Then:
 Linux: `sudo apt install ffmpeg`. Windows: `winget install Gyan.FFmpeg`. These are
 supported on a best-effort basis; the project is developed on macOS.
 
-### Your API key
+### Your API key and the AI service
 
-swimform is built for Google's Gemini API, which is the one we recommend: it takes
-video directly and a key is freely available to anyone. (Keys from other AI providers
-will not work without changing the code.) Get one free at
-<https://aistudio.google.com/apikey> and paste it in **Settings**. It
-is kept in your browser tab, or in browser storage if you tick *Remember it*, and
-sent only to the swimform server on your own machine and on to Google. It is
-never written to disk by swimform.
+Pick the service in **Settings**, get a key from it, and paste it there:
+
+| Service | Key | How it sees your swim |
+|---|---|---|
+| **Google Gemini** (recommended) | <https://aistudio.google.com/apikey> (free to start) | takes the **video** directly, so it sees the whole stroke |
+| **OpenAI** (experimental) | <https://platform.openai.com/api-keys> | cannot take video: swimform sends **still frames** cut from the clip, each labelled with its time |
+| **Anthropic Claude** (experimental) | <https://console.anthropic.com/settings/keys> | the same, frame-based |
+
+Frame-based analysis is a different method: the timing is coarser (up to 24 frames per
+clip) and results can differ from Gemini's. Gemini is the better-tested path; treat the
+others as a second opinion. Results say which service and mode produced them.
+
+The key is kept in your browser tab, or in browser storage if you tick *Remember it*, and
+sent only to the swimform server on your own machine and on to the service you chose. It is
+never written to disk by swimform. There is one key per service, so switching does not lose
+the others.
 
 Two things to know:
 
-- **A free key is fine for trying it on yourself, but** Google may use what you
-  send on the free tier and says not to submit personal information there. If you
-  film anyone else, or you are in the EEA, UK or Switzerland, use a key with
-  billing enabled. Details and sources: [docs/RESPONSIBLE_USE.md](docs/RESPONSIBLE_USE.md).
+- **A free key is fine for trying it on yourself, but** providers may use what you send on
+  a free tier and generally say not to submit personal information there. If you film anyone
+  else, or you are in the EEA, UK or Switzerland, use a paid key. Details and sources:
+  [docs/RESPONSIBLE_USE.md](docs/RESPONSIBLE_USE.md).
 - **The key is yours and so is the bill.** Keep it private; never commit it.
 
-For the command line you can instead put it in the environment:
+For the command line you can instead put the key in the environment (or in
+`~/.config/swimform/.env`, one `NAME=value` per line) and choose a service with
+`--provider` or the `provider` setting:
 
 ```bash
-export GEMINI_API_KEY=your-key-here
+export GEMINI_API_KEY=your-key-here        # or OPENAI_API_KEY / ANTHROPIC_API_KEY
 ```
-
-or in `~/.config/swimform/.env` as `GEMINI_API_KEY=your-key-here`.
 
 ## Filming a clip that works
 
@@ -167,7 +176,10 @@ The defaults suit almost everyone, so the app only exposes the model choice (Set
 
 | key | default | |
 |---|---|---|
-| `models` | four Gemini models | tried in order; the first that answers wins |
+| `provider` | `gemini` | which AI service the command line uses (`gemini`, `openai`, `anthropic`) |
+| `models` | four Gemini models | Gemini's model order; the first that answers wins |
+| `modelsOpenai` | two OpenAI models | the same, for OpenAI |
+| `modelsAnthropic` | three Claude models | the same, for Anthropic |
 | `fps` | `2.0` | frames per second the model samples |
 | `overlays` | `3` | annotated frames to render (each costs a request) |
 | `evidencePerFault` | `4` | stills per finding (free, no model call) |
@@ -204,13 +216,16 @@ An honest list, not a disclaimer.
   in it is hand-authored.
 - **Thin coverage.** "Head too high" and "over-rotation" are each addressed by only
   one or two drills, all of them secondary.
+- **OpenAI and Anthropic support is experimental.** It has only ever run against local
+  stand-ins, never a real key, and its default model names are best guesses. It works from
+  still frames, so timestamps are coarser than with Gemini.
 - **Not tested with real footage in this repository.** The test suite runs the whole
-  pipeline against a local stand-in for Gemini, so the real model's behaviour on real
+  pipeline against local stand-ins for the three AI services, so the real models' behaviour on real
   swims is exactly what is not covered.
 
 ## Privacy, and what leaves your machine
 
-- **Your clip is sent to the AI service behind your key** (Google's Gemini API in this version). That is where the
+- **Your clip is sent to the AI service behind your key** (Gemini as video, or OpenAI/Anthropic as still frames). That is where the
   analysis happens; there is no way around it in this design.
 - **Nothing else leaves.** No analytics, no telemetry, no account.
 - The shortened copy of your clip is deleted when the analysis ends. Stills and
@@ -229,7 +244,7 @@ Full details, sources and a note on data-protection law:
 |---|---|
 | "ffmpeg not found" | `brew install ffmpeg`, then restart `swimform serve` |
 | "port 8787 is already in use" | an earlier swimform is running; use `--port 8788`, or `lsof -nP -iTCP:8787 -sTCP:LISTEN` |
-| "The AI service rejected the key" | re-copy it whole from aistudio.google.com/apikey; check the Gemini API is enabled for it |
+| "The AI service rejected the key" | re-copy it whole from the service's key page; check the key belongs to the service selected in Settings |
 | "Could not verify Google's certificate" | with a python.org install on macOS, run the "Install Certificates.command" that ships with Python, or use the system Python |
 | Every model is "unavailable" | the free tier saturates at peak times; wait a few minutes, or change the model list in Settings |
 | The video won't play but stills work | the browser can't decode that codec (iPhone HEVC `.mov` outside Safari/Chrome); the stills still apply |
@@ -241,9 +256,9 @@ python3 -m unittest discover -s tests          # no network, no key
 ```
 
 The tests start the real server and run the dual-angle flow against
-`tests/support/fake_gemini_server.py`, a local stand-in for the Gemini API used for
+`tests/support/fake_providers.py`, a local stand-in for the three AI APIs used for
 testing only (the clips are test patterns generated by ffmpeg). The environment
-variable `SWIMFORM_GEMINI_BASE` points the client at it; it is deliberately not a
+variables `SWIMFORM_GEMINI_BASE`, `SWIMFORM_OPENAI_BASE` and `SWIMFORM_ANTHROPIC_BASE` point the client at it; it is deliberately not a
 setting, so a web page cannot redirect your key.
 
 The 3D viewer is built from `drill3d/` and the output is committed, so running
@@ -263,7 +278,7 @@ swimform/
   coach.py        grounded Q&A: triage to faults, then answer from real drills
   recommend.py    deterministic drill ranking
   taxonomy.py     faults + drills, the join between the two halves
-  gemini.py       stdlib API client with model fallback
+  providers/      the AI services behind one interface: fallback, Gemini, OpenAI, Anthropic
   server.py       local HTTP API and static files
   security.py     host / origin / key-shape checks
   wording.py      the words used for a score

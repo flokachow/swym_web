@@ -19,7 +19,7 @@ import unittest
 from pathlib import Path
 
 import _sandbox  # noqa: F401
-from support.fake_gemini_server import GOOD_KEY
+from support.fake_providers import GOOD_KEY, KEYS
 from support.harness import LiveServer
 from swimform import config
 
@@ -48,13 +48,13 @@ class DualAngleFlow(unittest.TestCase):
         cls.srv.close()
         shutil.rmtree(cls.tmp, ignore_errors=True)
 
-    def analyse(self, video: bytes, viewpoint: str, start=None, end=None, key=GOOD_KEY):
+    def analyse(self, video: bytes, viewpoint: str, start=None, end=None, key=GOOD_KEY, provider=None):
         headers = {"X-Viewpoint": viewpoint}
         if start is not None:
             headers["X-Start-Sec"] = str(start)
         if end is not None:
             headers["X-End-Sec"] = str(end)
-        status, _, data = self.srv.request("POST", "/analyze", video, headers, key=key)
+        status, _, data = self.srv.request("POST", "/analyze", video, headers, key=key, provider=provider)
         return status, json.loads(data)
 
     def test_two_angles_become_one_verdict(self):
@@ -94,6 +94,30 @@ class DualAngleFlow(unittest.TestCase):
         self.assertTrue(framed, "expected at least one annotated frame")
         status, hdrs, _ = self.srv.request("GET", framed[0]["frame"]["image"])
         self.assertEqual((status, hdrs["content-type"]), (200, "image/png"))
+
+    def test_the_other_providers_run_the_same_flow_from_frames(self):
+        for provider in ("openai", "anthropic"):
+            key = KEYS[provider]
+            s1, side = self.analyse(self.short, "side", key=key, provider=provider)
+            s2, front = self.analyse(self.long, "front", key=key, provider=provider)
+            self.assertEqual((s1, s2), (200, 200), (side, front))
+            for res in (side, front):
+                self.assertEqual((res["provider"], res["mode"]), (provider, "frames"))
+            status, combined = self.srv.json("POST", "/combine", {"angles": [
+                {"slot": "side", "result": side}, {"slot": "front", "result": front}]})
+            self.assertEqual(status, 200, combined)
+            self.assertEqual((combined["provider"], combined["mode"]), (provider, "frames"))
+            got = {a["faultId"]: a for a in combined["assessments"]}
+            self.assertEqual(got["low_body_position"]["fromClip"], "side")
+            self.assertEqual(got["crossover_entry"]["fromClip"], "front")
+            self.assertEqual(combined["notAssessable"], [])
+            calls = [c for c in self.srv.fake.calls if c["method"] == "POST" and c["provider"] == provider]
+            self.assertTrue(calls)
+            self.assertNotIn(key, json.dumps(side) + json.dumps(combined) + "\n".join(self.srv.log))
+
+    def test_gemini_results_say_they_were_watched_as_video(self):
+        status, res = self.analyse(self.short, "side")
+        self.assertEqual((res["provider"], res["mode"]), ("gemini", "video"))
 
     def test_nothing_is_left_behind_but_the_stills(self):
         self.analyse(self.short, "side")

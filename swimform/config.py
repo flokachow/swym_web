@@ -26,6 +26,10 @@ OVERLAY_ROOT = CONFIG_DIR / "overlays"
 
 DATA_DIR = Path(__file__).resolve().parent / "data"
 
+PROVIDER_IDS = ("gemini", "openai", "anthropic")
+ENV_KEYS = {"gemini": "GEMINI_API_KEY", "openai": "OPENAI_API_KEY", "anthropic": "ANTHROPIC_API_KEY"}
+PROVIDER_NAMES = {"gemini": "Gemini", "openai": "OpenAI", "anthropic": "Anthropic"}
+
 # Model names end up in a request path, so they are held to a strict shape.
 MODEL_RE = re.compile(r"^[A-Za-z0-9._-]{1,64}$")
 
@@ -38,6 +42,12 @@ DEFAULTS = {
         "gemini-3.6-flash",
         "gemini-3.5-flash-lite",
     ],
+    # Used when a request does not name a provider (the command line, mostly).
+    "provider": "gemini",
+    # The other providers' model orders. Names are unverified here; the key check
+    # lists what a key can really use, and a missing model falls through.
+    "modelsOpenai": ["gpt-5", "gpt-4.1"],
+    "modelsAnthropic": ["claude-sonnet-5-5", "claude-opus-5-5", "claude-haiku-4-5-20251001"],
     # A freestyle stroke cycle takes ~1.2s, so sampling at 1fps aliases the
     # stroke phases. 2fps is the floor that actually sees the catch.
     "fps": 2.0,
@@ -80,8 +90,17 @@ def _models(v):
     return list(dict.fromkeys(v))
 
 
+def _provider(v):
+    if v not in PROVIDER_IDS:
+        raise ConfigError(f"must be one of {', '.join(PROVIDER_IDS)}")
+    return v
+
+
 VALIDATORS = {
+    "provider": _provider,
     "models": _models,
+    "modelsOpenai": _models,
+    "modelsAnthropic": _models,
     "fps": _number(0.5, 10),
     "overlays": _number(0, 6, integer=True),
     "temperature": _number(0, 2),
@@ -142,9 +161,10 @@ class MissingKey(RuntimeError):
     """Raised instead of exiting, so the server can report it over HTTP."""
 
 
-def api_key() -> str:
+def api_key(provider: str = "gemini") -> str:
     """The key for command-line use: environment first, then the .env file."""
-    key = os.environ.get("GEMINI_API_KEY", "").strip()
+    name = ENV_KEYS[provider]
+    key = os.environ.get(name, "").strip()
     if key:
         return key
     if ENV_PATH.exists():
@@ -152,20 +172,19 @@ def api_key() -> str:
             line = line.strip()
             if line.startswith("export "):
                 line = line[len("export "):].strip()
-            if line.startswith("GEMINI_API_KEY=") and not line.startswith("#"):
+            if line.startswith(name + "=") and not line.startswith("#"):
                 return line.split("=", 1)[1].strip().strip('"').strip("'")
     raise MissingKey(
-        "No API key found.\n"
+        f"No {PROVIDER_NAMES[provider]} API key found.\n"
         "  In the web app: Settings, then paste your key.\n"
-        f"  On the command line: put GEMINI_API_KEY=... in {ENV_PATH}\n"
-        "  or export it:        export GEMINI_API_KEY=...\n"
-        "  Free key: https://aistudio.google.com/apikey"
+        f"  On the command line: put {name}=... in {ENV_PATH}\n"
+        f"  or export it:        export {name}=..."
     )
 
 
-def has_server_key() -> bool:
+def has_server_key(provider: str = "gemini") -> bool:
     try:
-        api_key()
+        api_key(provider)
         return True
     except MissingKey:
         return False

@@ -24,7 +24,7 @@ from __future__ import annotations
 
 import math
 
-from . import recommend, security, taxonomy, wording
+from . import config, recommend, security, taxonomy, wording
 
 SLOTS = ("side", "front")
 READABLE = {"side", "front", "rear", "above", "underwater", "mixed", "unclear"}
@@ -124,8 +124,10 @@ def _clean_angle(slot: str, result) -> dict:
         if isinstance(n, dict) and n.get("faultId") in taxonomy.fault_by_id():
             not_assessable.append({"faultId": n["faultId"], "reason": _text(n.get("reason"), 400)})
 
+    provider = result.get("provider") if result.get("provider") in config.PROVIDER_IDS else None
+    mode = result.get("mode") if result.get("mode") in ("video", "frames") else None
     return {
-        "slot": slot, "viewpoint": read, "swimmerVisible": visible,
+        "slot": slot, "viewpoint": read, "swimmerVisible": visible, "provider": provider, "mode": mode,
         "summary": _text(result.get("summary")),
         "strokeCount": int(result["strokeCount"]) if isinstance(result.get("strokeCount"), int)
         and not isinstance(result.get("strokeCount"), bool) and 0 <= result["strokeCount"] < 500 else None,
@@ -256,6 +258,8 @@ def combine(angles_in: list[dict], limit: int = 6) -> dict:
 
     return {
         "swimmerVisible": bool(visible),
+        "provider": next((a["provider"] for a in angles if a["provider"]), None),
+        "mode": next((a["mode"] for a in angles if a["mode"]), None),
         "headline": headline,
         "summary": " ".join(summaries[s] for s in SLOTS if s in summaries),
         "summaries": summaries,

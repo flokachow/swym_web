@@ -20,7 +20,7 @@ from __future__ import annotations
 
 import json
 
-from . import config, gemini, recommend, taxonomy
+from . import config, providers, recommend, taxonomy
 
 MAX_HISTORY = 6  # turns kept for follow-ups; beyond this the thread has drifted
 
@@ -172,7 +172,8 @@ def answer_prompt(question: str, faults: list[dict], drills: list[dict],
 
 
 def ask(question: str, analysis: dict | None = None, history: list[dict] | None = None,
-        model: str | None = None, limit: int = 4, key: str | None = None) -> dict:
+        model: str | None = None, limit: int = 4, key: str | None = None,
+        provider: str | None = None) -> dict:
     """Answer a technique question. Returns the prose plus what grounded it.
 
     `key` is the caller's own Gemini key (the web UI sends it per request);
@@ -182,11 +183,12 @@ def ask(question: str, analysis: dict | None = None, history: list[dict] | None 
     if not question:
         raise CoachError("Ask a question.")
 
-    key = key or config.api_key()
+    provider = providers.get(provider).id
+    key = key or config.api_key(provider)
     history = history or []
 
-    triaged = gemini.generate(
-        [{"text": triage_prompt(question, analysis)}],
+    triaged = providers.generate(
+        provider, [{"text": triage_prompt(question, analysis)}],
         triage_schema(), key, model=model, temperature=0.1, timeout=90,
     )
 
@@ -225,8 +227,8 @@ def ask(question: str, analysis: dict | None = None, history: list[dict] | None 
                             focus={f["faultId"] for f in faults})
     ]
 
-    answer = gemini.generate(
-        [{"text": answer_prompt(question, faults, drills, analysis, history)}],
+    answer = providers.generate(
+        provider, [{"text": answer_prompt(question, faults, drills, analysis, history)}],
         None, key, model=model, temperature=0.4, timeout=120,
     )
 

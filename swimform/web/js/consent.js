@@ -10,9 +10,10 @@ export const GOOGLE_TERMS = "https://ai.google.dev/gemini-api/terms";
 const POINTS = [
   ["Where your video goes.",
    "Each clip is shortened on your computer and then sent over the internet to the AI service behind the API key " +
-   "you provide. This version is built for Google's Gemini API, which we recommend because a key is freely " +
-   "available to anyone. There is no swimform server and no account. Stills made from your clips are stored " +
-   "on this computer for a limited time and can be deleted in Settings."],
+   "you provide: Google Gemini (recommended: it takes the video directly, and a key is freely available to " +
+   "anyone) or, experimentally, OpenAI or Anthropic Claude (which are sent still frames cut from the clip). " +
+   "There is no swimform server and no account. Stills made from your clips are stored on this computer for a " +
+   "limited time and can be deleted in Settings."],
   ["Free keys and personal data.",
    "AI providers usually let themselves use what you send on a free tier to improve their products, and people " +
    "may review it. They generally say not to send personal information there, and video of a person is " +
@@ -43,7 +44,8 @@ export function noticeBody() {
     el("p", { class: "small muted" }, [
       "For Gemini, Google's terms: ",
       el("a", { href: GOOGLE_TERMS, target: "_blank", rel: "noopener noreferrer", text: GOOGLE_TERMS }),
-      ". Consent notice version ", CONSENT_VERSION, ".",
+      ". For OpenAI or Anthropic, read their terms and privacy policy on their websites before sending anyone's video. " +
+      "Consent notice version ", CONSENT_VERSION, ".",
     ]),
   ]);
 }

@@ -3,7 +3,7 @@
 import { el, clear } from "./js/dom.js";
 import { get } from "./js/api.js";
 import { ensureConsent } from "./js/consent.js";
-import { getKey, hasConsent } from "./js/store.js";
+import { getKey, getProvider, hasConsent } from "./js/store.js";
 import state from "./js/state.js";
 
 const VIEWS = {
@@ -44,13 +44,21 @@ async function route() {
 export async function refreshStatus() {
   const box = document.getElementById("status");
   try { state.health = await get("/health"); } catch { state.health = null; }
+  if (!state.providers) {
+    try { state.providers = (await get("/providers")).providers; } catch { state.providers = null; }
+  }
   const h = state.health;
+  const provider = getProvider();
+  const label = ((state.providers || []).find(p => p.id === provider) || {}).label || provider;
   const pills = [];
   if (!h) {
     pills.push(el("span", { class: "pill bad", text: "Can't reach the swimform server" }));
   } else {
     if (!h.ffmpeg || !h.ffprobe) pills.push(el("span", { class: "pill bad", text: "ffmpeg not found" }));
-    if (getKey() || h.serverKey) pills.push(el("span", { class: "pill", text: "API key ready" }));
+    if (getKey() || (h.serverKeys && h.serverKeys[provider])) {
+      pills.push(el("a", { class: "pill", href: "#/settings", title: "Change the AI service in Settings",
+                           text: `API key ready · ${label.replace(" (experimental)", "")}` }));
+    }
     else pills.push(el("a", { class: "pill bad", href: "#/settings", text: "Add your API key" }));
   }
   box.replaceChildren(...pills);

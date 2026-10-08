@@ -46,8 +46,9 @@ Video trimming and still extraction call the `ffmpeg` and `ffprobe` programs on
 your PATH. They are not part of this repository; install them separately
 (see the README) under their own licence.
 
-## Google Gemini API (external service)
+## AI services (external)
 
-Analysis is performed by Google's Gemini API using your own API key, under
-[Google's terms](https://ai.google.dev/gemini-api/terms). swimform is not
-affiliated with or endorsed by Google.
+Analysis is performed by the AI service you choose, using your own API key, under that
+service's terms: Google's Gemini API
+([terms](https://ai.google.dev/gemini-api/terms)), or, experimentally, OpenAI's or
+Anthropic's APIs. swimform is not affiliated with or endorsed by any of them.

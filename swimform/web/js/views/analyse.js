@@ -4,7 +4,7 @@ import { el, clear, mmss, bytes, toast } from "../dom.js";
 import * as api from "../api.js";
 import state from "../state.js";
 import { ensureConsent } from "../consent.js";
-import { addHistory, getKey } from "../store.js";
+import { addHistory, getKey, getProvider } from "../store.js";
 import { createPlayer } from "../player.js";
 
 const MAX_BYTES = 512 * 1024 * 1024;
@@ -40,8 +40,14 @@ export function mount(root, ctx) {
     ui.go,
     el("span", { class: "small muted", text: "Clips are trimmed and sent to the AI service with your API key." }),
   ]);
+  const p = providerInfo();
+  ui.providerNote = p && !p.nativeVideo
+    ? el("p", { class: "notice small", text:
+        `${p.label}: your clip is sent as still frames cut from it, not as video, so timing is coarser and ` +
+        "results can differ from Gemini's. Gemini is the better-tested choice." })
+    : null;
   ui.results = el("div", { id: "results" });
-  root.append(...intro, ui.notice, ui.slots, ui.bar, ui.results);
+  root.append(...intro, ui.notice, ui.slots, ui.bar, ...(ui.providerNote ? [ui.providerNote] : []), ui.results);
   refreshButtons();
   if (state.combined) renderResults();
 }
@@ -125,6 +131,8 @@ function slotCard(slot) {
   return card;
 }
 
+const providerInfo = () => (state.providers || []).find(p => p.id === getProvider());
+
 const num = v => (v === "" || isNaN(Number(v)) ? null : Number(v));
 
 function fail(message) {
@@ -173,7 +181,7 @@ async function run(only) {
   if (!(await ensureConsent())) {
     return fail("Read and accept the responsible-use notice first — it explains where your video goes.");
   }
-  if (!getKey() && !(state.health && state.health.serverKey)) {
+  if (!getKey() && !(state.health && state.health.serverKeys && state.health.serverKeys[getProvider()])) {
     ui.notice.replaceChildren(el("p", { class: "notice bad", role: "alert" }, [
       el("b", { text: "An API key is needed. " }),
       "Paste yours in ", el("a", { href: "#/settings", text: "Settings" }),
@@ -262,11 +270,17 @@ function renderResults() {
     el("div", { class: "meta num" }, [
       meta("viewpoint", c.viewpoint),
       c.strokeCount ? meta("strokes", "~" + c.strokeCount) : null,
+      c.provider ? meta("analysed with", providerName(c.provider)) : null,
       meta("scored", String(c.assessments.length)),
       meta("report threshold", c.reportThreshold.toFixed(2)),
     ]),
   ]);
   box.append(el("h2", { class: "section-title", text: "Your result" }), verdict);
+  if (c.mode === "frames") {
+    box.append(el("p", { class: "notice", text:
+      "Experimental: this was analysed from still frames cut from your clip, not from the video, so timestamps " +
+      "are coarser than with Gemini. Treat it as a second opinion." }));
+  }
 
   // footage
   const footage = el("section", { "aria-label": "Your footage" });
@@ -330,6 +344,8 @@ function renderResults() {
   ]));
   box.firstChild.scrollIntoView({ behavior: "smooth", block: "start" });
 }
+
+const providerName = id => ((state.providers || []).find(p => p.id === id) || {}).label || id;
 
 const meta = (k, v) => el("span", {}, [k + " ", el("b", { text: v })]);
 

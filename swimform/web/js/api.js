@@ -1,7 +1,7 @@
 // Talking to the local swimform server. Every call carries the custom header
-// that proves it came from this page, and the Gemini key when there is one.
+// that proves it came from this page, the chosen AI service, and the API key when there is one.
 
-import { getKey } from "./store.js";
+import { getKey, getProvider } from "./store.js";
 
 export class ApiError extends Error {
   constructor(message, status, body = {}) {
@@ -12,9 +12,9 @@ export class ApiError extends Error {
 }
 
 function headers(extra = {}) {
-  const h = { "X-Swimform": "1", ...extra };
+  const h = { "X-Swimform": "1", "X-Provider": getProvider(), ...extra };
   const key = getKey();
-  if (key) h["X-Gemini-Key"] = key;
+  if (key) h["X-Api-Key"] = key;
   return h;
 }
 

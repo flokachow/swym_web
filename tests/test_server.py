@@ -5,7 +5,7 @@ from __future__ import annotations
 import unittest
 
 import _sandbox  # noqa: F401
-from support.fake_gemini_server import GOOD_KEY
+from support.fake_providers import ANTHROPIC_KEY, GOOD_KEY, OPENAI_KEY
 from support.harness import LiveServer
 from swimform import config
 
@@ -74,7 +74,7 @@ class ServerTests(unittest.TestCase):
     def test_health_never_reports_a_key(self):
         status, body = self.srv.json("GET", "/health")
         self.assertEqual(status, 200)
-        self.assertIs(body["serverKey"], False)
+        self.assertEqual(body["serverKeys"], {"gemini": False, "openai": False, "anthropic": False})
         self.assertNotIn(GOOD_KEY, str(body))
 
     def test_config_update_merges_instead_of_resetting(self):
@@ -190,6 +190,51 @@ class ServerTests(unittest.TestCase):
                                      key="wrong-key-0123456789abcdefghij")
         self.assertEqual(status, 401)
         self.assertTrue(body["needsKey"])
+
+    # -- providers --------------------------------------------------------
+
+    def test_the_provider_list(self):
+        status, body = self.srv.json("GET", "/providers")
+        self.assertEqual(status, 200)
+        self.assertEqual([p["id"] for p in body["providers"]], ["gemini", "openai", "anthropic"])
+        self.assertEqual(body["default"], "gemini")
+        self.assertTrue(body["providers"][0]["recommended"])
+
+    def test_an_unknown_provider_is_a_400(self):
+        status, _ = self.srv.json("POST", "/key/check", {}, provider="nope")
+        self.assertEqual(status, 400)
+
+    def test_key_check_works_per_provider(self):
+        for provider, key in (("openai", OPENAI_KEY), ("anthropic", ANTHROPIC_KEY)):
+            status, body = self.srv.json("POST", "/key/check", {}, key=key, provider=provider)
+            self.assertEqual((status, body["valid"], body["provider"]), (200, True, provider))
+            self.assertTrue(body["models"])
+            self.assertNotIn(key, str(body))
+
+    def test_a_key_for_the_wrong_provider_is_rejected(self):
+        status, body = self.srv.json("POST", "/key/check", {}, key=GOOD_KEY, provider="openai")
+        self.assertIs(body["valid"], False)
+
+    def test_ask_goes_to_the_chosen_provider_with_its_own_auth(self):
+        for provider, key, header in (("openai", OPENAI_KEY, "authorization"),
+                                      ("anthropic", ANTHROPIC_KEY, "x-api-key")):
+            status, body = self.srv.json("POST", "/ask", {"question": "why do my legs sink?"},
+                                         key=key, provider=provider)
+            self.assertEqual(status, 200, body)
+            self.assertTrue(body["drills"])
+            seen = [c for c in self.srv.fake.calls if c["method"] == "POST"][-1]
+            self.assertEqual(seen["provider"], provider)
+            self.assertIn(key, {k.lower(): v for k, v in seen["headers"].items()}[header])
+            self.assertNotIn(key, str(body))
+
+    def test_the_default_provider_is_a_setting(self):
+        status, body = self.srv.json("POST", "/config", {"provider": "anthropic"})
+        self.assertEqual(body["provider"], "anthropic")
+        status, _ = self.srv.json("POST", "/config", {"provider": "other"})
+        self.assertEqual(status, 400)
+        status, body = self.srv.json("POST", "/key/check", {}, key=ANTHROPIC_KEY)   # no header: uses the default
+        self.assertEqual((body["valid"], body["provider"]), (True, "anthropic"))
+
 
     def test_combine_rejects_nonsense(self):
         for bad in ({}, {"angles": []}, {"angles": [{"slot": "up", "result": {}}]},

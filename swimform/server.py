@@ -10,7 +10,7 @@ two clips of a dual-angle run can be analysed side by side. At most two
 analyses run at once; a third is refused rather than queued, because every one
 of them spends the user's own quota.
 
-The Gemini key is never stored here. The browser sends it in `X-Gemini-Key` on
+The API key is never stored here. The browser sends it in `X-Api-Key` on
 each request; the command line falls back to the environment.
 """
 
@@ -26,7 +26,7 @@ import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
-from . import __version__, analyze as analyze_mod, coach, config, gemini, merge, report
+from . import __version__, analyze as analyze_mod, coach, config, merge, providers, report
 from . import security, storage, taxonomy
 
 WEB_DIR = Path(__file__).resolve().parent / "web"
@@ -67,11 +67,12 @@ class Handler(BaseHTTPRequestHandler):
       GET  /                     the web app
       GET  /static/<file>        its scripts, styles and the 3D viewer
       GET  /health               liveness, setup status (never the key)
+      GET  /providers            the AI providers on offer, and each one's model order
       GET  /faults               the taxonomy
       GET  /drills[?fault=id]    the drill library
       GET  /config               runtime settings
       POST /config               update them (validated, merged)
-      POST /key/check            is this Gemini key valid? lists usable models
+      POST /key/check            is this key valid? lists the models it can use
       POST /analyze              raw video bytes for ONE clip; window and angle in headers
       POST /combine              merge one or two analysed clips into a verdict
       POST /ask                  {question, analysis?, history?}
@@ -134,9 +135,16 @@ class Handler(BaseHTTPRequestHandler):
             raise RequestError(400, "The request body must be a JSON object.")
         return data
 
+    def _provider(self) -> str:
+        """Which AI service this request is for: the X-Provider header, else the default."""
+        name = (self.headers.get("X-Provider") or "").strip().lower() or config.load()["provider"]
+        if name not in config.PROVIDER_IDS:
+            raise RequestError(400, "Unknown provider.")
+        return name
+
     def _key(self) -> str | None:
-        """The caller's Gemini key from the request header, shape-checked."""
-        key = (self.headers.get("X-Gemini-Key") or "").strip()
+        """The caller's API key from the request header, shape-checked."""
+        key = (self.headers.get("X-Api-Key") or "").strip()
         if not key:
             return None
         if not security.valid_key_shape(key):
@@ -174,10 +182,13 @@ class Handler(BaseHTTPRequestHandler):
                     "ok": True,
                     "version": __version__,
                     "models": config.load()["models"],
-                    "serverKey": config.has_server_key(),
+                    "serverKeys": {p: config.has_server_key(p) for p in config.PROVIDER_IDS},
                     "ffmpeg": bool(shutil.which("ffmpeg")),
                     "ffprobe": bool(shutil.which("ffprobe")),
                 })
+
+            elif path == "/providers":
+                self._json(200, {"providers": providers.info(), "default": config.load()["provider"]})
 
             elif path == "/faults":
                 self._json(200, {"faults": taxonomy.faults()})
@@ -239,7 +250,7 @@ class Handler(BaseHTTPRequestHandler):
                 self._json(200, config.save(self._body()))
 
             elif path == "/key/check":
-                self._json(200, self._key_check(key))
+                self._json(200, self._key_check(key, self._provider()))
 
             elif path == "/analyze":
                 self._json(200, self._analyze(key))
@@ -259,7 +270,8 @@ class Handler(BaseHTTPRequestHandler):
                 history = [h for h in history[-6:] if isinstance(h, dict)
                            and isinstance(h.get("text"), str) and h.get("role") in ("swimmer", "coach")]
                 analysis = body.get("analysis") if isinstance(body.get("analysis"), dict) else None
-                self._json(200, coach.ask(question, analysis, history, key=key))
+                self._json(200, coach.ask(question, analysis, history, key=key,
+                                          provider=self._provider()))
 
             elif path == "/purge":
                 self._json(200, {"removed": storage.purge()})
@@ -271,29 +283,29 @@ class Handler(BaseHTTPRequestHandler):
             self._json(e.status, {"error": str(e)})
         except config.MissingKey as e:
             self._json(503, {"error": str(e), "needsKey": True})
-        except gemini.GeminiKeyError as e:
+        except providers.KeyRejected as e:
             self._json(401, {"error": str(e), "needsKey": True})
         except (analyze_mod.AnalysisError, coach.CoachError, config.ConfigError,
                 merge.CombineError) as e:
             self._json(400, {"error": str(e)})
-        except gemini.GeminiError as e:
-            self._json(502, {"error": gemini.scrub(str(e), key)})
+        except providers.ProviderError as e:
+            self._json(502, {"error": providers.scrub(str(e), key)})
         except Exception as e:  # noqa: BLE001
             traceback.print_exc()
-            self._json(500, {"error": gemini.scrub(f"{type(e).__name__}: {e}", key)})
+            self._json(500, {"error": providers.scrub(f"{type(e).__name__}: {e}", key)})
 
     # -- key check --------------------------------------------------------
 
-    def _key_check(self, key: str | None) -> dict:
+    def _key_check(self, key: str | None, provider: str) -> dict:
         if not key:
             return {"valid": False, "error": "Paste a key first."}
         try:
-            models = gemini.list_models(key)
-        except gemini.GeminiKeyError as e:
+            models = providers.list_models(provider, key)
+        except providers.KeyRejected as e:
             return {"valid": False, "error": str(e)}
-        except gemini.GeminiError as e:
-            return {"valid": None, "error": gemini.scrub(str(e), key)}
-        return {"valid": True, "models": models}
+        except providers.ProviderError as e:
+            return {"valid": None, "error": providers.scrub(str(e), key)}
+        return {"valid": True, "models": models, "provider": provider}
 
     # -- analysis ---------------------------------------------------------
 
@@ -302,6 +314,7 @@ class Handler(BaseHTTPRequestHandler):
         if length <= 0:
             raise analyze_mod.AnalysisError("No video in the request.")
 
+        provider = self._provider()
         viewpoint = self.headers.get("X-Viewpoint") or None
         if viewpoint not in (None, "side", "front"):
             raise RequestError(400, "X-Viewpoint must be 'side' or 'front'.")
@@ -333,7 +346,8 @@ class Handler(BaseHTTPRequestHandler):
             try:
                 out_dir = config.OVERLAY_ROOT / run_id
                 result = analyze_mod.analyze(
-                    dest, start, end, model=model, out_dir=out_dir, key=key, viewpoint=viewpoint)
+                    dest, start, end, model=model, out_dir=out_dir, key=key, viewpoint=viewpoint,
+                    provider=provider)
             finally:
                 slots.release()
         finally:
@@ -389,7 +403,7 @@ def serve(port: int = 8787, host: str = "127.0.0.1", open_browser: bool = False,
           extra_hosts: tuple[str, ...] = ()) -> int:
     cfg = config.load()
 
-    if not config.has_server_key():
+    if not any(config.has_server_key(p) for p in config.PROVIDER_IDS):
         print("[swimform] no key in the environment — paste yours in the app's Settings.\n",
               file=sys.stderr)
 

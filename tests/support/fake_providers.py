@@ -1,12 +1,11 @@
-"""A stand-in for the Gemini REST API, for TESTS ONLY.
+"""A stand-in for the Gemini, OpenAI and Anthropic REST APIs, for TESTS ONLY.
 
 It is a test double, not a product mode: swimform has no demo or mock engine and
 this file is not part of the package. It lets the suite (and a manual
 walkthrough) exercise the real code paths — header handling, fallback, ffmpeg,
 Pillow, merging — without a key or the network.
 
-    fake = FakeGemini(); base = fake.start()
-    os.environ["SWIMFORM_GEMINI_BASE"] = base
+    fake = FakeProviders(); fake.start()      # also points the three SWIMFORM_*_BASE variables at itself
 
 The assessment it returns depends on the length of the clip, which the real
 prompt states ("runs from 0.0 to N seconds"): a short clip reads as a side-on
@@ -17,12 +16,18 @@ making two clips of different lengths.
 from __future__ import annotations
 
 import json
+import os
 import re
 import threading
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-GOOD_KEY = "test-key-0123456789abcdefghij"
+GOOD_KEY = "test-key-0123456789abcdefghij"            # the Gemini key
+OPENAI_KEY = "sk-test-openai-0123456789abcdefgh"
+ANTHROPIC_KEY = "sk-ant-test-0123456789abcdefghij"
+KEYS = {"gemini": GOOD_KEY, "openai": OPENAI_KEY, "anthropic": ANTHROPIC_KEY}
+BASE_ENV = {"gemini": "SWIMFORM_GEMINI_BASE", "openai": "SWIMFORM_OPENAI_BASE",
+            "anthropic": "SWIMFORM_ANTHROPIC_BASE"}
 
 POINTS = [
     ("head_top", 300, 480), ("ear", 330, 500), ("shoulder_near", 400, 520),
@@ -73,12 +78,12 @@ def scenario(kind: str, duration: float) -> dict:
     }
 
 
-class FakeGemini:
-    def __init__(self, good_key: str = GOOD_KEY):
-        self.good_key = good_key
+class FakeProviders:
+    def __init__(self):
         self.calls: list[dict] = []
         # model -> list of behaviours consumed in order, then "ok" forever.
-        # Behaviours: "ok", "404", "400", "429", "503", "401", "timeout", "drop", "echo503"
+        # Behaviours: "ok", "404", "400", "429", "503", "529", "401", "timeout", "drop",
+        #             "echo503", "reject_temp"
         self.behaviours: dict[str, list[str]] = {}
         self.delay = 0.0           # seconds to sleep before answering any call
         self.side_max_seconds = 7.0  # clips up to this long read as "side"
@@ -104,24 +109,39 @@ class FakeGemini:
                 self.end_headers()
                 self.wfile.write(body)
 
-            def _auth(self) -> bool:
-                key = self.headers.get("x-goog-api-key", "")
+            def _provider(self) -> str:
+                return self.path.lstrip("/").split("/", 1)[0]
+
+            def _auth(self, provider: str) -> bool:
+                h = {k.lower(): v for k, v in self.headers.items()}
                 if "key=" in self.path:
                     self._reply(400, {"error": {"message": "key must be in the header"}})
                     return False
-                if key != fake.good_key:
-                    self._reply(400, {"error": {"code": 400, "status": "INVALID_ARGUMENT",
-                                                "message": "API key not valid. Please pass a valid API key."}})
-                    return False
-                return True
+                if provider == "gemini":
+                    ok = h.get("x-goog-api-key", "") == KEYS["gemini"]
+                    err = (400, {"error": {"code": 400, "status": "INVALID_ARGUMENT",
+                                           "message": "API key not valid. Please pass a valid API key."}})
+                elif provider == "openai":
+                    ok = h.get("authorization", "") == f"Bearer {KEYS['openai']}"
+                    err = (401, {"error": {"message": "Incorrect API key provided: sk-***.",
+                                           "code": "invalid_api_key"}})
+                else:
+                    ok = h.get("x-api-key", "") == KEYS["anthropic"] and bool(h.get("anthropic-version"))
+                    err = (401, {"type": "error", "error": {"type": "authentication_error",
+                                                            "message": "invalid x-api-key"}})
+                if not ok:
+                    self._reply(*err)
+                return ok
 
             def do_GET(self):  # noqa: N802
-                fake.calls.append({"method": "GET", "path": self.path, "headers": dict(self.headers)})
+                provider = self._provider()
+                fake.calls.append({"method": "GET", "provider": provider, "path": self.path,
+                                   "headers": dict(self.headers)})
                 if fake.delay:
                     time.sleep(fake.delay)
-                if not self._auth():
+                if not self._auth(provider):
                     return
-                if self.path.startswith("/v1beta/models"):
+                if provider == "gemini" and "/models" in self.path:
                     token = "next" if "pageToken" not in self.path and fake.pages > 1 else ""
                     names = fake.models if not token else fake.models[:1]
                     body = {"models": [{"name": f"models/{n}",
@@ -131,25 +151,35 @@ class FakeGemini:
                     if token:
                         body["nextPageToken"] = token
                     return self._reply(200, body)
+                if provider == "openai" and "/models" in self.path:
+                    ids = ["gpt-5", "gpt-4.1", "text-embedding-3-small", "whisper-1", "gpt-image-1"]
+                    return self._reply(200, {"data": [{"id": i} for i in ids]})
+                if provider == "anthropic" and "/models" in self.path:
+                    return self._reply(200, {"data": [{"id": "claude-sonnet-5-5"}, {"id": "claude-haiku-4-5-20251001"}],
+                                             "has_more": False})
                 self._reply(404, {"error": {"message": "nope"}})
 
             def do_POST(self):  # noqa: N802
+                provider = self._provider()
                 length = int(self.headers.get("Content-Length", 0))
                 raw = self.rfile.read(length)
-                m = re.match(r"^/v1beta/models/([^:]+):generateContent", self.path)
-                model = m.group(1) if m else ""
                 try:
                     body = json.loads(raw)
                 except json.JSONDecodeError:
                     body = {}
+                if provider == "gemini":
+                    m = re.search(r"/models/([^:]+):generateContent", self.path)
+                    model = m.group(1) if m else ""
+                else:
+                    model = body.get("model", "")
                 with fake._lock:
-                    fake.calls.append({"method": "POST", "path": self.path, "model": model,
-                                       "headers": dict(self.headers), "body": body})
+                    fake.calls.append({"method": "POST", "provider": provider, "path": self.path,
+                                       "model": model, "headers": dict(self.headers), "body": body})
                     queue = fake.behaviours.get(model, [])
                     behaviour = queue.pop(0) if queue else "ok"
                 if fake.delay:
                     time.sleep(fake.delay)
-                if not self._auth():
+                if not self._auth(provider):
                     return
                 if behaviour == "timeout":
                     time.sleep(3)
@@ -158,29 +188,69 @@ class FakeGemini:
                     self.connection.close()
                     return
                 if behaviour == "echo503":
-                    leaked = self.headers.get("x-goog-api-key", "")
+                    leaked = (self.headers.get("x-goog-api-key") or self.headers.get("x-api-key")
+                              or self.headers.get("authorization", ""))
                     return self._reply(503, {"error": {"message": f"upstream saw {leaked}"}})
-                if behaviour in ("404", "400", "429", "503", "401"):
+                if behaviour == "reject_temp" and fake.has_temperature(provider, body):
+                    return self._reply(400, {"error": {"message":
+                        "Unsupported value: 'temperature' does not support 0.2 with this model."}})
+                if behaviour in ("404", "400", "429", "503", "529", "401"):
                     return self._reply(int(behaviour), {"error": {"message": f"scripted {behaviour}"}})
-                self._reply(200, fake._answer(body))
+                self._reply(200, fake._answer(provider, body))
 
         self._server = ThreadingHTTPServer(("127.0.0.1", 0), H)
         self._server.daemon_threads = True
         threading.Thread(target=self._server.serve_forever, daemon=True).start()
-        return f"http://127.0.0.1:{self._server.server_address[1]}/v1beta"
+        root = f"http://127.0.0.1:{self._server.server_address[1]}"
+        os.environ[BASE_ENV["gemini"]] = f"{root}/gemini/v1beta"
+        os.environ[BASE_ENV["openai"]] = f"{root}/openai/v1"
+        os.environ[BASE_ENV["anthropic"]] = f"{root}/anthropic/v1"
+        return f"{root}/gemini/v1beta"
 
-    def stop(self) -> None:
+    def kill(self) -> None:
+        """Stop answering but leave the base URLs pointing here, so calls fail to connect
+        (rather than falling through to the real services)."""
         if self._server:
             self._server.shutdown()
             self._server.server_close()
+            self._server = None
+
+    def stop(self) -> None:
+        self.kill()
+        for name in BASE_ENV.values():
+            os.environ.pop(name, None)
 
     # -- answers ----------------------------------------------------------
 
-    def _answer(self, body: dict) -> dict:
-        schema = body.get("generationConfig", {}).get("response_schema") or {}
-        props = schema.get("properties", {})
-        parts = body["contents"][0]["parts"]
-        prompt = " ".join(p.get("text", "") for p in parts)
+    @staticmethod
+    def has_temperature(provider: str, body: dict) -> bool:
+        if provider == "gemini":
+            return "temperature" in body.get("generationConfig", {})
+        return "temperature" in body
+
+    @staticmethod
+    def _texts_and_images(provider: str, body: dict) -> tuple[str, int, dict]:
+        """(all the prompt text, how many images/videos were sent, the response schema's properties)"""
+        if provider == "gemini":
+            parts = body["contents"][0]["parts"]
+            text = " ".join(p.get("text", "") for p in parts)
+            media = sum(1 for p in parts if "inline_data" in p)
+            props = (body.get("generationConfig", {}).get("response_schema") or {}).get("properties", {})
+        elif provider == "openai":
+            parts = body["messages"][0]["content"]
+            text = " ".join(p.get("text", "") for p in parts if p.get("type") == "text")
+            media = sum(1 for p in parts if p.get("type") == "image_url")
+            props = (((body.get("response_format") or {}).get("json_schema") or {}).get("schema") or {}).get("properties", {})
+        else:
+            parts = body["messages"][0]["content"]
+            text = " ".join(p.get("text", "") for p in parts if p.get("type") == "text")
+            media = sum(1 for p in parts if p.get("type") == "image")
+            tools = body.get("tools") or [{}]
+            props = (tools[0].get("input_schema") or {}).get("properties", {})
+        return text, media, props
+
+    def _answer(self, provider: str, body: dict) -> dict:
+        prompt, _, props = self._texts_and_images(provider, body)
 
         if "assessments" in props:
             m = re.search(r"from 0\.0 to ([0-9.]+) seconds", prompt)
@@ -195,7 +265,18 @@ class FakeGemini:
                 {"faultId": "low_body_position", "likelihood": 0.8, "why": "Sinking legs."}]}
         else:
             payload = None
-
         text = json.dumps(payload) if payload is not None else \
             "Your legs sink because your head is high. Try **Kick sets** this week."
-        return {"candidates": [{"content": {"parts": [{"text": text}]}, "finishReason": "STOP"}]}
+
+        if provider == "gemini":
+            return {"candidates": [{"content": {"parts": [{"text": text}]}, "finishReason": "STOP"}]}
+        if provider == "openai":
+            return {"choices": [{"message": {"role": "assistant", "content": text},
+                                 "finish_reason": "stop"}]}
+        if payload is not None:
+            return {"content": [{"type": "tool_use", "name": "report", "input": payload}],
+                    "stop_reason": "tool_use"}
+        return {"content": [{"type": "text", "text": text}], "stop_reason": "end_turn"}
+
+
+FakeGemini = FakeProviders  # the name older tests use

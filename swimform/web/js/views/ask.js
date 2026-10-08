@@ -2,7 +2,7 @@ import { el, richText } from "../dom.js";
 import * as api from "../api.js";
 import state from "../state.js";
 import { ensureConsent } from "../consent.js";
-import { getKey } from "../store.js";
+import { getKey, getProvider } from "../store.js";
 
 const EXAMPLES = [
   "My legs sink as soon as I breathe",
@@ -38,7 +38,7 @@ export function mount(root) {
     question = question.trim();
     if (!question) return;
     if (!(await ensureConsent())) return;
-    if (!getKey() && !(state.health && state.health.serverKey)) {
+    if (!getKey() && !(state.health && state.health.serverKeys && state.health.serverKeys[getProvider()])) {
       return addTurn(thread, { role: "coach", error: "Add your API key in Settings first.", link: true });
     }
     input.value = "";

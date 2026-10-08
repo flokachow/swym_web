@@ -37,7 +37,9 @@ class TestDocs(unittest.TestCase):
         readme = (ROOT / "README.md").read_text()
         self.assertIn(f"{words[len(taxonomy.drills())]} drills", readme.lower())
         for key, value in config.DEFAULTS.items():
-            if key != "models":
+            if isinstance(value, list):
+                self.assertIn(f"`{key}`", readme, key)
+            else:
                 self.assertRegex(readme, rf"`{key}`.*`{re.escape(str(value))}`", key)
 
     def test_readme_commands_exist(self):

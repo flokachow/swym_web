@@ -24,14 +24,14 @@ def _fail(msg: str) -> int:
 
 
 def cmd_analyze(args: argparse.Namespace) -> int:
-    print("[swimform] This clip will be sent to Google's Gemini API under your API key. "
+    print("[swimform] This clip will be sent to an AI service under your API key. "
           "Adults who have agreed only;\n"
           "           see docs/RESPONSIBLE_USE.md.", file=sys.stderr)
     try:
         result = analyze_mod.analyze(
             args.video, args.start, args.end, args.fps, args.model,
             args.overlays, Path(args.overlay_dir) if args.overlay_dir else None,
-            limit=args.drills,
+            limit=args.drills, provider=args.provider,
         )
     except (analyze_mod.AnalysisError, config.MissingKey) as e:
         return _fail(str(e))
@@ -81,7 +81,7 @@ def cmd_ask(args: argparse.Namespace) -> int:
                 return 0
 
         try:
-            res = coach.ask(question, analysis, history, args.model)
+            res = coach.ask(question, analysis, history, args.model, provider=args.provider)
         except (coach.CoachError, config.MissingKey) as e:
             return _fail(str(e))
         except Exception as e:  # noqa: BLE001
@@ -191,6 +191,8 @@ def build_parser() -> argparse.ArgumentParser:
     a.add_argument("--fps", type=float,
                    help="frames per second the model samples (default 2; a stroke is ~1.2s)")
     a.add_argument("--model", help="pin one model instead of the fallback chain")
+    a.add_argument("--provider", choices=config.PROVIDER_IDS,
+                   help="AI service to use (default: the 'provider' setting, gemini)")
     a.add_argument("--overlays", type=int, help="how many annotated frames to render")
     a.add_argument("--overlay-dir", help="where to write the overlay PNGs")
     a.add_argument("--drills", type=int, default=6, help="how many drills to prescribe")
@@ -204,6 +206,7 @@ def build_parser() -> argparse.ArgumentParser:
     q.add_argument("question", nargs="*")
     q.add_argument("--context", help="an analysis .json to answer against")
     q.add_argument("--model")
+    q.add_argument("--provider", choices=config.PROVIDER_IDS)
     q.add_argument("--json", action="store_true")
     q.set_defaults(func=cmd_ask)
 

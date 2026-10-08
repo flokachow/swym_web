@@ -9,7 +9,7 @@ import threading
 
 from swimform import server
 
-from .fake_gemini_server import GOOD_KEY, FakeGemini
+from .fake_providers import GOOD_KEY, FakeGemini
 
 
 class LiveServer:
@@ -34,12 +34,14 @@ class LiveServer:
         os.environ.pop("SWIMFORM_GEMINI_BASE", None)
 
     def request(self, method, path, body=None, headers=None, host=None, key=GOOD_KEY,
-                csrf=True, timeout=120):
+                csrf=True, timeout=120, provider=None):
         h = {"Host": host or f"127.0.0.1:{self.port}"}
         if method == "POST" and csrf:
             h["X-Swimform"] = "1"
         if key:
-            h["X-Gemini-Key"] = key
+            h["X-Api-Key"] = key
+        if provider:
+            h["X-Provider"] = provider
         h.update(headers or {})
         conn = http.client.HTTPConnection("127.0.0.1", self.port, timeout=timeout)
         try:
