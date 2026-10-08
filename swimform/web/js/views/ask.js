@@ -39,7 +39,7 @@ export function mount(root) {
     if (!question) return;
     if (!(await ensureConsent())) return;
     if (!getKey() && !(state.health && state.health.serverKey)) {
-      return addTurn(thread, { role: "coach", error: "Add your Gemini key in Settings first.", link: true });
+      return addTurn(thread, { role: "coach", error: "Add your API key in Settings first.", link: true });
     }
     input.value = "";
     send.disabled = true;

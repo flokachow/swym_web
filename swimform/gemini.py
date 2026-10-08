@@ -86,7 +86,7 @@ def _is_cert_error(exc: BaseException) -> bool:
 
 
 CERT_HELP = (
-    "Your computer could not verify Google's certificate (TLS). On macOS with a "
+    "Your computer could not verify the service's certificate (TLS). On macOS with a "
     "python.org install, run the \"Install Certificates.command\" that ships with "
     "Python, or use the system Python."
 )
@@ -127,8 +127,8 @@ def generate(parts: list[dict], schema: dict | None, key: str,
                 last_error = f"{candidate}: {e.code}: {detail}"
                 if _is_key_rejection(e.code, detail):
                     raise GeminiKeyError(
-                        "Google rejected the API key. Check it was pasted whole and that "
-                        "the Gemini API is enabled for it.") from None
+                        "The AI service rejected the API key. Check it was pasted whole and that "
+                        "the API is enabled for it.") from None
                 if e.code in RETRY_STATUSES:
                     if attempt < MAX_ATTEMPTS_PER_MODEL:
                         # Exponential backoff with jitter. A saturated model clears
@@ -165,7 +165,7 @@ def generate(parts: list[dict], schema: dict | None, key: str,
     if payload is None:
         raise GeminiError(
             f"No model in the fallback chain could answer. Last error — {last_error}\n"
-            "The Gemini free tier saturates at peak times; waiting a few minutes usually "
+            "Free tiers saturate at peak times; waiting a few minutes usually "
             "clears it. If a model name is retired, change the list in Settings."
         )
 
@@ -201,14 +201,14 @@ def list_models(key: str, timeout: float = 20) -> list[str]:
             detail = scrub(e.read().decode("utf-8", errors="replace")[:300], key)
             if _is_key_rejection(e.code, detail) or e.code == 400:
                 raise GeminiKeyError(
-                    "Google rejected the API key. Check it was pasted whole.") from None
-            raise GeminiError(f"Gemini API error {e.code}: {detail}") from None
+                    "The AI service rejected the API key. Check it was pasted whole.") from None
+            raise GeminiError(f"API error {e.code}: {detail}") from None
         except (TimeoutError, socket.timeout):
-            raise GeminiError("Google did not answer in time.") from None
+            raise GeminiError("The AI service did not answer in time.") from None
         except (urllib.error.URLError, OSError) as e:
             if _is_cert_error(e):
                 raise GeminiError(CERT_HELP) from None
-            raise GeminiError(f"Could not reach Google: {scrub(str(getattr(e, 'reason', e)), key)}") from None
+            raise GeminiError(f"Could not reach the AI service: {scrub(str(getattr(e, 'reason', e)), key)}") from None
         for m in page.get("models", []):
             if "generateContent" in m.get("supportedGenerationMethods", []):
                 names.append(m["name"].split("/", 1)[-1])

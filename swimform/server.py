@@ -140,7 +140,7 @@ class Handler(BaseHTTPRequestHandler):
         if not key:
             return None
         if not security.valid_key_shape(key):
-            raise RequestError(400, "That does not look like a Gemini API key.")
+            raise RequestError(400, "That does not look like an API key.")
         return key
 
     def _guard(self, method: str) -> bool:
@@ -329,7 +329,7 @@ class Handler(BaseHTTPRequestHandler):
             slots = self.server.slots
             if not slots.acquire(blocking=False):
                 raise RequestError(429, "Two analyses are already running. Wait for one to "
-                                        "finish — each one spends your Gemini quota.")
+                                        "finish — each one spends your API quota.")
             try:
                 out_dir = config.OVERLAY_ROOT / run_id
                 result = analyze_mod.analyze(

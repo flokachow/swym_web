@@ -155,7 +155,7 @@ def api_key() -> str:
             if line.startswith("GEMINI_API_KEY=") and not line.startswith("#"):
                 return line.split("=", 1)[1].strip().strip('"').strip("'")
     raise MissingKey(
-        "No Gemini API key found.\n"
+        "No API key found.\n"
         "  In the web app: Settings, then paste your key.\n"
         f"  On the command line: put GEMINI_API_KEY=... in {ENV_PATH}\n"
         "  or export it:        export GEMINI_API_KEY=...\n"

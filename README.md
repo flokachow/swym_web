@@ -4,7 +4,7 @@ Film yourself swimming freestyle, from the side and from the front. swimform tel
 you what your stroke is doing wrong, shows you the frames where it happens, and
 suggests drills that fix it. Then you can ask it questions.
 
-It runs on your own computer, against your own Gemini API key. There is no
+It runs on your own computer, against your own AI API key (Gemini recommended). There is no
 account, no server of ours, and nothing that keeps your video. It is a tool you
 run, not a service you join.
 
@@ -44,7 +44,7 @@ python3 -m swimform serve --open     # then follow the steps below
 
 ## Set up (macOS)
 
-You need **Python 3.9+**, **ffmpeg**, and a **Gemini API key**.
+You need **Python 3.9+**, **ffmpeg**, and an **AI API key** (built for Gemini, which we recommend).
 
 ```bash
 brew install ffmpeg
@@ -58,13 +58,13 @@ python3 -m swimform serve --open
 The app opens at <http://127.0.0.1:8787>. Then:
 
 1. Read and accept the notice.
-2. Open **Settings** and paste your Gemini API key (below), then **Save and check**.
+2. Open **Settings** and paste your API key (below), then **Save and check**.
 3. Go to **Analyse**, add a side clip and a front clip (or one of them), and press **Analyse**.
 
 Linux: `sudo apt install ffmpeg`. Windows: `winget install Gyan.FFmpeg`. These are
 supported on a best-effort basis; the project is developed on macOS.
 
-### Your Gemini key
+### Your API key
 
 swimform is built for Google's Gemini API, which is the one we recommend: it takes
 video directly and a key is freely available to anyone. (Keys from other AI providers
@@ -209,7 +209,7 @@ An honest list, not a disclaimer.
 
 ## Privacy, and what leaves your machine
 
-- **Your clip is sent to Google's Gemini API** under your key. That is where the
+- **Your clip is sent to the AI service behind your key** (Google's Gemini API in this version). That is where the
   analysis happens; there is no way around it in this design.
 - **Nothing else leaves.** No analytics, no telemetry, no account.
 - The shortened copy of your clip is deleted when the analysis ends. Stills and
@@ -228,7 +228,7 @@ Full details, sources and a note on data-protection law:
 |---|---|
 | "ffmpeg not found" | `brew install ffmpeg`, then restart `swimform serve` |
 | "port 8787 is already in use" | an earlier swimform is running; use `--port 8788`, or `lsof -nP -iTCP:8787 -sTCP:LISTEN` |
-| "Google rejected the key" | re-copy it whole from aistudio.google.com/apikey; check the Gemini API is enabled for it |
+| "The AI service rejected the key" | re-copy it whole from aistudio.google.com/apikey; check the Gemini API is enabled for it |
 | "Could not verify Google's certificate" | with a python.org install on macOS, run the "Install Certificates.command" that ships with Python, or use the system Python |
 | Every model is "unavailable" | the free tier saturates at peak times; wait a few minutes, or change the model list in Settings |
 | The video won't play but stills work | the browser can't decode that codec (iPhone HEVC `.mov` outside Safari/Chrome); the stills still apply |

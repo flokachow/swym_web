@@ -20,8 +20,8 @@ export async function mount(root) {
 
 function keyPanel() {
   const input = el("input", { type: "password", autocomplete: "off", spellcheck: "false",
-    placeholder: getKey() ? "A key is saved — paste a new one to replace it" : "Paste your Gemini API key",
-    "aria-label": "Gemini API key" });
+    placeholder: getKey() ? "A key is saved — paste a new one to replace it" : "Paste your API key",
+    "aria-label": "API key" });
   const remember = el("input", { type: "checkbox", checked: keyIsRemembered() });
   const result = el("div", { "aria-live": "polite" });
   const where = el("p", { class: "small muted" });
@@ -46,7 +46,7 @@ function keyPanel() {
     if (!getKey()) { result.replaceChildren(el("p", { class: "notice bad", text: "Paste a key first." })); return; }
     input.value = "";
     save.disabled = true;
-    result.replaceChildren(el("p", { class: "muted", text: "Checking with Google…" }));
+    result.replaceChildren(el("p", { class: "muted", text: "Checking the key…" }));
     try {
       const r = await api.checkKey();
       if (r.valid === true) {
@@ -67,23 +67,24 @@ function keyPanel() {
   });
   remove.addEventListener("click", () => {
     clearKey(); state.models = null; input.value = "";
-    input.placeholder = "Paste your Gemini API key";
+    input.placeholder = "Paste your API key";
     result.replaceChildren(); paintWhere(); ping(); toast("Key removed from this browser");
   });
 
-  return el("section", { class: "card", "aria-label": "Gemini API key" }, [
-    el("h2", { text: "Your Gemini API key" }),
+  return el("section", { class: "card", "aria-label": "API key" }, [
+    el("h2", { text: "Your API key" }),
     el("p", { class: "muted", text:
-      "swimform has no account and no server of its own. Each analysis runs on Google's Gemini service using " +
-      "your key, so the usage is yours — and so is the bill, if your key has billing on." }),
+      "swimform has no account and no server of its own. Each analysis runs on an AI service using your key, " +
+      "so the usage is yours — and so is the bill, if your key has billing on. This version is built for " +
+      "Google's Gemini API, which we recommend because a key is freely available." }),
     el("ol", {}, [
-      el("li", {}, ["Get a key at ", el("a", { href: "https://aistudio.google.com/apikey", target: "_blank", rel: "noopener noreferrer", text: "aistudio.google.com/apikey" }), "."]),
-      el("li", { text: "Paste it below. It is kept in this browser tab, and sent only to this computer's swimform server and on to Google." }),
+      el("li", {}, ["Get a key (for Gemini, at ", el("a", { href: "https://aistudio.google.com/apikey", target: "_blank", rel: "noopener noreferrer", text: "aistudio.google.com/apikey" }), ")."]),
+      el("li", { text: "Paste it below. It is kept in this browser tab, and sent only to this computer's swimform server and on to the AI service." }),
       el("li", { text: "Never share it, never put it in a screenshot, and never commit it to a repository." }),
     ]),
     el("p", { class: "notice", text:
-      "A free key works for trying this out, but Google may use what you send on the free tier, and its terms say " +
-      "not to submit personal information there. If you film anyone but yourself, use a key with billing enabled." }),
+      "A free key works for trying this out, but providers may use what you send on a free tier and generally say " +
+      "not to submit personal information there. If you film anyone but yourself, use a paid key." }),
     input,
     el("label", { class: "check" }, [remember, el("span", { text: "Remember it on this browser (otherwise it is forgotten when you close the tab)" })]),
     el("div", { class: "row center" }, [save, remove]),
@@ -148,7 +149,7 @@ function privacyPanel() {
   return el("section", { class: "card", "aria-label": "Privacy and data" }, [
     el("h2", { text: "Privacy and data" }),
     el("ul", {}, [
-      el("li", { text: `Gemini key: ${stored.key}` }),
+      el("li", { text: `API key: ${stored.key}` }),
       el("li", { text: `Responsible-use notice accepted: ${stored.consent ? "yes" : "no"}` }),
       el("li", { text: `Saved swims in your progress history: ${stored.history}` }),
     ]),

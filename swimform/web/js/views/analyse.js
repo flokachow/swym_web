@@ -38,7 +38,7 @@ export function mount(root, ctx) {
   ui.go = el("button", { class: "btn primary", type: "button", text: "Analyse", onclick: run });
   ui.bar = el("div", { class: "row center" }, [
     ui.go,
-    el("span", { class: "small muted", text: "Clips are trimmed and sent to Google Gemini with your key." }),
+    el("span", { class: "small muted", text: "Clips are trimmed and sent to the AI service with your API key." }),
   ]);
   ui.results = el("div", { id: "results" });
   root.append(...intro, ui.notice, ui.slots, ui.bar, ui.results);
@@ -175,7 +175,7 @@ async function run(only) {
   }
   if (!getKey() && !(state.health && state.health.serverKey)) {
     ui.notice.replaceChildren(el("p", { class: "notice bad", role: "alert" }, [
-      el("b", { text: "A Gemini API key is needed. " }),
+      el("b", { text: "An API key is needed. " }),
       "Paste yours in ", el("a", { href: "#/settings", text: "Settings" }),
       " — it takes a minute. Settings also explains what a free key means for your video.",
     ]));
@@ -201,7 +201,7 @@ async function run(only) {
       state.runs[slot] = { status: "error", error: err.message };
       if (err.needsKey) {
         ui.notice.replaceChildren(el("p", { class: "notice bad", role: "alert" }, [
-          el("b", { text: "Google rejected the key. " }), "Check it in ", el("a", { href: "#/settings", text: "Settings" }), "."]));
+          el("b", { text: "The AI service rejected the key. " }), "Check it in ", el("a", { href: "#/settings", text: "Settings" }), "."]));
       }
     }
   }));

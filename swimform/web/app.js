@@ -50,8 +50,8 @@ export async function refreshStatus() {
     pills.push(el("span", { class: "pill bad", text: "Can't reach the swimform server" }));
   } else {
     if (!h.ffmpeg || !h.ffprobe) pills.push(el("span", { class: "pill bad", text: "ffmpeg not found" }));
-    if (getKey() || h.serverKey) pills.push(el("span", { class: "pill", text: "Gemini key ready" }));
-    else pills.push(el("a", { class: "pill bad", href: "#/settings", text: "Add your Gemini key" }));
+    if (getKey() || h.serverKey) pills.push(el("span", { class: "pill", text: "API key ready" }));
+    else pills.push(el("a", { class: "pill bad", href: "#/settings", text: "Add your API key" }));
   }
   box.replaceChildren(...pills);
 }

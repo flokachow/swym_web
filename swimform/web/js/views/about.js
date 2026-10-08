@@ -18,7 +18,7 @@ export function mount(root) {
     ]),
     el("h2", { class: "section-title", text: "Your data" }),
     el("ul", {}, [
-      el("li", { text: "Clips are re-encoded on your computer, sent to Google for the analysis, and deleted from this computer as soon as the analysis ends." }),
+      el("li", { text: "Clips are re-encoded on your computer, sent to the AI service for the analysis, and deleted from this computer as soon as the analysis ends." }),
       el("li", { text: "Stills and annotated frames stay in swimform's folder on this computer for the retention time in Settings, then are deleted." }),
       el("li", { text: "Your key, your progress history and your consent are stored only in this browser, and can be removed from Settings." }),
       el("li", { text: "Nothing else leaves your computer: no analytics, no telemetry, no account." }),
