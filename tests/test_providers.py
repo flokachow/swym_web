@@ -43,7 +43,7 @@ class Contract:
         self._sleep = base._sleep
         base._sleep = lambda s: None  # do not wait out real backoff
         config.save({self.setting: self.models})
-        providers.get(self.provider).no_temperature.clear()
+        providers.get(self.provider).reset()
 
     def tearDown(self):
         base._sleep = self._sleep
@@ -100,12 +100,42 @@ class Contract:
     def test_repeated_network_failure_still_reaches_the_next_model(self):
         self.fake.behaviours = {"model-a": ["drop", "drop", "drop"]}
         self.gen()
-        self.assertEqual(self.models_called(), ["model-a"] * 3 + ["model-b"])
+        self.assertEqual(self.models_called(), ["model-a"] * 2 + ["model-b"])
 
     def test_a_busy_model_is_retried_before_falling_back(self):
         self.fake.behaviours = {"model-a": ["429", "503"]}
         self.gen()
-        self.assertEqual(self.models_called(), ["model-a"] * 3)
+        self.assertEqual(self.models_called(), ["model-a", "model-a", "model-b"])
+
+    def test_a_busy_service_costs_one_retry_per_model_not_three(self):
+        self.fake.behaviours = {m: ["503"] * 5 for m in self.models}
+        with self.assertRaises(providers.ProviderError):
+            self.gen()
+        self.assertEqual(len(self.posts()), 2 * len(self.models))
+
+    def test_the_model_that_just_worked_is_tried_first_next_time(self):
+        self.fake.behaviours = {"model-a": ["404"]}
+        self.gen()                                    # a fails, b works
+        self.gen()                                    # b should go first now
+        self.assertEqual(self.models_called(), ["model-a", "model-b", "model-b"])
+
+    def test_a_model_that_just_failed_busy_is_tried_last_next_time(self):
+        self.fake.behaviours = {"model-a": ["503", "503"]}
+        self.gen()                                    # a busy twice, b works
+        self.fake.calls.clear()
+        self.fake.behaviours = {"model-b": ["404"]}   # now b is gone; a is still avoided
+        self.gen()
+        self.assertEqual(self.models_called(), ["model-b", "model-c"])   # c before the busy a
+
+    def test_busy_models_are_not_avoided_for_ever(self):
+        self.fake.behaviours = {"model-a": ["503", "503"]}
+        self.gen()
+        adapter = providers.get(self.provider)
+        adapter.busy_until["model-a"] = 0             # the 60 seconds have passed
+        adapter.last_ok = None
+        self.fake.calls.clear()
+        self.gen()
+        self.assertEqual(self.models_called(), ["model-a"])
 
     def test_overloaded_529_is_treated_as_busy(self):
         self.fake.behaviours = {"model-a": ["529"]}
@@ -246,6 +276,8 @@ class TestVideoVersusFrames(unittest.TestCase):
         self.fake = FakeProviders()
         self.fake.start()
         config.save({"models": ["model-a"], "modelsOpenai": ["model-a"], "modelsAnthropic": ["model-a"]})
+        for p in config.PROVIDER_IDS:
+            providers.get(p).reset()
 
     def tearDown(self):
         self.fake.stop()

@@ -46,6 +46,10 @@ export function mount(root) {
     const you = { role: "swimmer", text: question };
     addTurn(thread, you);
     const pending = addTurn(thread, { role: "coach", text: "thinking…" });
+    // A busy AI service can take a while; say so instead of a silent "thinking…".
+    const waiting = pending.querySelector("p");
+    const t1 = setTimeout(() => { if (waiting) waiting.textContent = "still thinking — the AI service may be busy, trying other models…"; }, 6000);
+    const t2 = setTimeout(() => { if (waiting) waiting.textContent = "still working. A busy service can take up to a minute; you can leave this page open."; }, 25000);
     try {
       const analysis = ctx ? {
         summary: state.combined.summary,
@@ -60,6 +64,7 @@ export function mount(root) {
     } catch (err) {
       pending.replaceWith(turnNode({ role: "coach", error: err.message, link: err.needsKey }));
     } finally {
+      clearTimeout(t1); clearTimeout(t2);
       send.disabled = false;
       input.focus();
     }

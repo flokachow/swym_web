@@ -36,7 +36,13 @@ from .. import config
 # Transient. Anything else is a real error and retrying just wastes the user's
 # quota on the same failure. 529 is Anthropic's "overloaded".
 RETRY_STATUSES = {429, 500, 502, 503, 504, 529}
-MAX_ATTEMPTS_PER_MODEL = 3
+# One retry, then the next model. A busy model usually stays busy for a while, while
+# another model is often fine, so waiting it out costs more than moving on.
+MAX_ATTEMPTS_PER_MODEL = 2
+
+# What we learn about the models while running, so the next call does not rediscover it.
+BUSY_SKIP_SECONDS = 60       # a model that just failed busy is tried last
+OK_PREFER_SECONDS = 600      # a model that just worked is tried first
 
 # Providers that cannot take video get still frames instead.
 MAX_FRAMES = 24
@@ -103,6 +109,24 @@ class Adapter:
         # Models that rejected a temperature setting; remembered so the next call
         # does not spend a request finding out again.
         self.no_temperature: set[str] = set()
+        self.busy_until: dict[str, float] = {}
+        self.last_ok: tuple[str, float] | None = None
+
+    def reset(self) -> None:
+        """Forget what has been learned about the models (tests, mostly)."""
+        self.no_temperature.clear()
+        self.busy_until.clear()
+        self.last_ok = None
+
+    def order(self, chain: list[str]) -> list[str]:
+        """The configured order, adjusted for what just happened: the model that
+        last worked goes first, models that just failed busy go last."""
+        now = time.time()
+        first = [m for m in chain if self.last_ok and m == self.last_ok[0]
+                 and now - self.last_ok[1] < OK_PREFER_SECONDS]
+        busy = [m for m in chain if self.busy_until.get(m, 0) > now and m not in first]
+        rest = [m for m in chain if m not in first and m not in busy]
+        return first + rest + busy
 
     # -- to implement -----------------------------------------------------
 
@@ -199,7 +223,7 @@ def generate(adapter: Adapter, parts: list[dict], schema: dict | None, key: str,
     Returns parsed JSON when `schema` is given, otherwise the raw text.
     """
     cfg = config.load()
-    chain = [model] if model else cfg[adapter.models_setting]
+    chain = [model] if model else adapter.order(cfg[adapter.models_setting])
     for name in chain:
         if not config.MODEL_RE.match(name or ""):
             raise ProviderError(f"'{name}' is not a valid model name.")
@@ -220,6 +244,8 @@ def generate(adapter: Adapter, parts: list[dict], schema: dict | None, key: str,
                 payload = request(url, adapter.headers(key), body, timeout)
                 if candidate != chain[0]:
                     print(f"[swimform] served by fallback model {candidate}", file=sys.stderr)
+                adapter.last_ok = (candidate, time.time())
+                adapter.busy_until.pop(candidate, None)
                 break
             except urllib.error.HTTPError as e:
                 detail = scrub(e.read().decode("utf-8", errors="replace")[:400], key)
@@ -238,11 +264,12 @@ def generate(adapter: Adapter, parts: list[dict], schema: dict | None, key: str,
                     if attempt < MAX_ATTEMPTS_PER_MODEL:
                         # Exponential backoff with jitter. A saturated model clears
                         # in seconds; hammering it makes the queue worse.
-                        delay = (2 ** attempt) + random.uniform(0, 1)
+                        delay = attempt + random.uniform(0, 0.5)
                         print(f"[swimform] {candidate} busy ({e.code}), retrying in "
                               f"{delay:.1f}s ({attempt}/{MAX_ATTEMPTS_PER_MODEL})", file=sys.stderr)
                         _sleep(delay)
                         continue
+                    adapter.busy_until[candidate] = time.time() + BUSY_SKIP_SECONDS
                     break  # out of attempts: next model
                 break  # 404 / 400 and friends: next model, no retry
             except (TimeoutError, socket.timeout):
