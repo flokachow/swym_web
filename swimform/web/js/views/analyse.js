@@ -153,9 +153,15 @@ function paintStatus(slot, box) {
   if (r.status === "running") {
     const label = el("span", { text: "Uploading…" });
     box.append(el("div", { class: "bar working bar-wrap" }, [el("i")]), label);
+    const frames = providerInfo() && !providerInfo().nativeVideo;
     const tick = () => {
       const s = Math.round((Date.now() - r.startedAt) / 1000);
-      label.textContent = `${s < 5 ? "Preparing" : s < 40 ? "Watching the clip" : "Scoring against the reference"} · ${mmss(s)}`;
+      // Honest stages for roughly where a run usually is; the service gives no progress events.
+      const stage = s < 5 ? "Preparing"
+        : s < 45 ? (frames ? "Looking at the frames" : "Watching the clip")
+        : s < 100 ? "Scoring against the reference"
+        : "Still working — the AI service may be busy or slow, and a full analysis can take a few minutes";
+      label.textContent = `${stage} · ${mmss(s)}`;
     };
     tick();
     clearInterval(timers[slot]);
