@@ -163,8 +163,19 @@ class ServerTests(unittest.TestCase):
     def test_a_malformed_key_is_a_400(self):
         status, _ = self.srv.json("POST", "/key/check", {}, key="short")
         self.assertEqual(status, 400)
-        status, _ = self.srv.json("POST", "/key/check", {}, key="has spaces in it 0123456789")
+        status, body = self.srv.json("POST", "/key/check", {}, key="has spaces in it 0123456789")
         self.assertEqual(status, 400)
+        self.assertIn("space", body["error"])
+        self.assertNotIn("has spaces", body["error"])
+
+    def test_a_key_with_a_dot_is_accepted_and_sent_on(self):
+        """Newer keys are not just letters and digits; they must not be turned away."""
+        dotted = "AQ.Ab8RN6Example_dotted-key.0123456789"
+        status, body = self.srv.json("POST", "/key/check", {}, key=dotted)
+        self.assertEqual(status, 200)            # accepted by the shape check...
+        self.assertIs(body["valid"], False)      # ...then judged by the (fake) service
+        seen = [c for c in self.srv.fake.calls if c["method"] == "GET"][-1]
+        self.assertEqual({k.lower(): v for k, v in seen["headers"].items()}["x-goog-api-key"], dotted)
 
     def test_ask_uses_the_callers_key_and_never_echoes_it(self):
         status, body = self.srv.json("POST", "/ask", {"question": "why do my legs sink?"})

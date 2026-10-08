@@ -13,7 +13,10 @@ from __future__ import annotations
 import re
 from urllib.parse import urlsplit
 
-KEY_RE = re.compile(r"^[A-Za-z0-9_-]{20,200}$")
+# A key only has to be safe to put in a header: printable ASCII, no spaces, no line breaks.
+# Providers' key formats change (some now contain dots and other symbols), so anything
+# stricter than that turns a valid, freshly generated key away.
+KEY_RE = re.compile(r"^[\x21-\x7e]{8,600}$")
 RUN_RE = re.compile(r"^run_[0-9a-f]{12}$")
 FILE_RE = re.compile(r"^[A-Za-z0-9._-]{1,80}\.(?:png|jpg)$")
 
@@ -28,6 +31,20 @@ def allowed_hosts(port: int, extra: tuple[str, ...] = ()) -> set[str]:
 
 def valid_key_shape(key: str) -> bool:
     return bool(KEY_RE.match(key or ""))
+
+
+def key_problem(key: str) -> str | None:
+    """Why a pasted key was refused, in words — never the key itself."""
+    key = key or ""
+    if re.search(r"\s", key):
+        return "contains a space or line break (paste just the key, once)"
+    if len(key) < 8:
+        return "is too short"
+    if len(key) > 600:
+        return "is too long (did it get pasted twice?)"
+    if re.search(r"[^\x21-\x7e]", key):
+        return "contains a character that is not plain ASCII (an accented letter or curly quote?)"
+    return None
 
 
 def check_request(method: str, headers, hosts: set[str]) -> str | None:

@@ -28,6 +28,15 @@ function draw(root, cfg, flash = null) {
 
 const info = id => state.providers.find(p => p.id === id);
 
+// The same rule the server applies: a key must be safe to send in a header.
+function keyProblem(key) {
+  if (/\s/.test(key)) return "contains a space or line break (paste just the key, once)";
+  if (key.length < 8) return "is too short";
+  if (key.length > 600) return "is too long (did it get pasted twice?)";
+  if (/[^\x21-\x7e]/.test(key)) return "contains a character that is not plain ASCII (an accented letter or curly quote?)";
+  return null;
+}
+
 function keyPanel(root, cfg, flash) {
   const provider = getProvider();
   const spec = info(provider);
@@ -65,6 +74,11 @@ function keyPanel(root, cfg, flash) {
   save.addEventListener("click", async () => {
     if (!(await ensureConsent())) return;
     const typed = input.value.trim();
+    const problem = typed && keyProblem(typed);
+    if (problem) {
+      result.replaceChildren(el("p", { class: "notice bad", role: "alert", text: `That does not look like an API key: it ${problem}.` }));
+      return;
+    }
     if (typed) setKey(typed, remember.checked);
     else if (getKey()) setKey(getKey(), remember.checked);   // only the remember choice changed
     if (!getKey()) { result.replaceChildren(el("p", { class: "notice bad", text: "Paste a key first." })); return; }

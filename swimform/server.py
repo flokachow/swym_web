@@ -147,8 +147,9 @@ class Handler(BaseHTTPRequestHandler):
         key = (self.headers.get("X-Api-Key") or "").strip()
         if not key:
             return None
-        if not security.valid_key_shape(key):
-            raise RequestError(400, "That does not look like an API key.")
+        problem = security.key_problem(key)
+        if problem:
+            raise RequestError(400, f"That does not look like an API key: it {problem}.")
         return key
 
     def _guard(self, method: str) -> bool:

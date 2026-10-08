@@ -77,10 +77,21 @@ class TestMeasureGate(unittest.TestCase):
 
 class TestSecurityHelpers(unittest.TestCase):
     def test_key_shape(self):
-        self.assertTrue(security.valid_key_shape("a" * 20))
-        self.assertTrue(security.valid_key_shape("test-key-0123456789abcdefghij"))
-        for bad in ("", "short", "has space 0123456789012345", "x" * 201, "ünicode" + "a" * 20, None):
+        for good in ("a" * 20, "test-key-0123456789abcdefghij",
+                     "AQ.Ab8RN6Example_dotted-key.0123456789",      # newer keys contain dots
+                     "sk-proj-" + "x" * 150, "sk-ant-api03-" + "Ab1_-" * 20, "k/e+y=value:12"):
+            self.assertTrue(security.valid_key_shape(good), good)
+        for bad in ("", "short", "has space 0123456789012345", "line\nbreak0123456789", "x" * 601,
+                    "ünicode" + "a" * 20, "tab\tinside01234567", None):
             self.assertFalse(security.valid_key_shape(bad), bad)
+
+    def test_a_refused_key_is_explained_without_echoing_it(self):
+        for key, word in (("has space 0123456789", "space"), ("abc1234", "short"), ("x" * 601, "long"),
+                          ("ünicode0123456789", "ASCII")):
+            reason = security.key_problem(key)
+            self.assertIn(word, reason)
+            self.assertNotIn(key, reason)
+        self.assertIsNone(security.key_problem("AQ.Ab8RN6Example_dotted-key.0123456789"))
 
     def test_hosts(self):
         hosts = security.allowed_hosts(8787)
