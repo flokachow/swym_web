@@ -113,7 +113,8 @@ function modelPanel(cfg) {
     el("h2", { text: "Model" }),
     el("p", { class: "muted", text:
       "Which model is best changes faster than this code does. swimform tries the models below in order and uses " +
-      "the first that answers. Check your key above to list what it can use." }),
+      "the first that answers. Check your key above to list what it can use. The defaults are Gemini model " +
+      "names because this version is built for Gemini; another provider would need different names and different code." }),
     el("label", { class: "label", text: "Try first" }), select,
     el("p", { class: "small faint num", text: "Fallback order: " + cfg.models.join(" → ") }),
   ]);

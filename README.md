@@ -166,7 +166,7 @@ Settings page, or `python3 -m swimform config`. Stored in
 
 | key | default | |
 |---|---|---|
-| `models` | four-model chain | tried in order; the first that answers wins |
+| `models` | four Gemini models | tried in order; the first that answers wins |
 | `fps` | `2.0` | frames per second the model samples |
 | `overlays` | `3` | annotated frames to render (each costs a request) |
 | `evidencePerFault` | `4` | stills per finding (free, no model call) |
