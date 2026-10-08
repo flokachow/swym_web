@@ -251,7 +251,9 @@ dialog { border: 1px solid var(--chalk); border-radius: var(--r-lg); background:
 dialog::backdrop { background: rgba(0, 0, 0, .55); }
 dialog .inner { padding: 22px; overflow-y: auto; max-height: calc(100vh - 24px); }
 dialog h2 { font-size: 22px; margin-bottom: 8px; }
-dialog .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+/* The buttons stay in view however short the window is. */
+dialog .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; padding: 12px 0 2px;
+                  position: sticky; bottom: 0; background: var(--abyss); border-top: 1px solid var(--edge); }
 
 .toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); background: var(--chalk); color: var(--abyss); padding: 10px 16px; border-radius: var(--r-md); font-weight: 600; z-index: 40; max-width: calc(100vw - 32px); }
 

@@ -15,11 +15,12 @@ export async function mount(root) {
   draw(root, cfg);
 }
 
-function draw(root, cfg) {
+// `flash` is a message to show in the key panel after a redraw (a redraw would otherwise erase it).
+function draw(root, cfg, flash = null) {
   root.replaceChildren(
     el("h1", { class: "page-title", text: "Settings" }),
     el("p", { class: "lede", text: "Which AI service to use, your key, and what swimform keeps." }),
-    keyPanel(root, cfg),
+    keyPanel(root, cfg, flash),
     modelPanel(cfg),
     privacyPanel(),
   );
@@ -27,7 +28,7 @@ function draw(root, cfg) {
 
 const info = id => state.providers.find(p => p.id === id);
 
-function keyPanel(root, cfg) {
+function keyPanel(root, cfg, flash) {
   const provider = getProvider();
   const spec = info(provider);
 
@@ -46,7 +47,7 @@ function keyPanel(root, cfg) {
     placeholder: getKey() ? "A key is saved — paste a new one to replace it" : "Paste your API key",
     "aria-label": "API key" });
   const remember = el("input", { type: "checkbox", checked: keyIsRemembered() });
-  const result = el("div", { "aria-live": "polite" });
+  const result = el("div", { "aria-live": "polite" }, flash ? [flash] : []);
   const where = el("p", { class: "small muted" });
   const paintWhere = () => {
     const held = describeStored().keys[provider];
@@ -74,11 +75,15 @@ function keyPanel(root, cfg) {
       const r = await api.checkKey();
       if (r.valid === true) {
         state.models = r.models;
-        result.replaceChildren(el("p", { class: "notice ok" }, [el("b", { text: "The key works. " }), `${r.models.length} models can be used with it.`]));
-        draw(root, cfg);   // refresh the model list below
+        // redraw so the model list below shows what this key can use, carrying the message across
+        draw(root, cfg, el("p", { class: "notice ok", role: "status" }, [
+          el("b", { text: `Saved. The ${spec.label.replace(" (experimental)", "")} key works. ` }),
+          `${r.models.length} models can be used with it.`]));
+        ping();
         return;
       } else if (r.valid === false) {
-        result.replaceChildren(el("p", { class: "notice bad", role: "alert", text: r.error }));
+        result.replaceChildren(el("p", { class: "notice bad", role: "alert", text:
+          `${r.error} Make sure the AI service chosen above matches where the key came from.` }));
       } else {
         result.replaceChildren(el("p", { class: "notice bad", role: "alert", text: `Couldn't check the key: ${r.error}` }));
       }
