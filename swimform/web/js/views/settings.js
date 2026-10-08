@@ -13,7 +13,6 @@ export async function mount(root) {
     el("p", { class: "lede", text: "Your key, the model, and what swimform keeps." }),
     keyPanel(),
     modelPanel(cfg),
-    analysisPanel(cfg),
     privacyPanel(),
   );
 }
@@ -117,31 +116,6 @@ function modelPanel(cfg) {
       "names because this version is built for Gemini; another provider would need different names and different code." }),
     el("label", { class: "label", text: "Try first" }), select,
     el("p", { class: "small faint num", text: "Fallback order: " + cfg.models.join(" → ") }),
-  ]);
-}
-
-function analysisPanel(cfg) {
-  const field = (id, label, hint, attrs) => {
-    const input = el("input", { type: "number", id, value: cfg[id], ...attrs });
-    return { id, input, node: el("div", { class: "field" }, [el("label", { class: "label", for: id, text: label }), input, el("div", { class: "small faint", text: hint })]) };
-  };
-  const fields = [
-    field("fps", "Frames per second", "2 sees the catch", { min: "0.5", max: "10", step: "0.5" }),
-    field("overlays", "Annotated frames", "0–6, each costs a request", { min: "0", max: "6", step: "1" }),
-    field("evidencePerFault", "Stills per fault", "free, no model call", { min: "0", max: "6", step: "1" }),
-    field("reportThreshold", "Report threshold", "below this is “clean”", { min: "0", max: "1", step: "0.05" }),
-    field("retentionHours", "Keep images (hours)", "then deleted", { min: "1", max: "720", step: "1" }),
-  ];
-  const msg = el("span", { class: "small muted", "aria-live": "polite" });
-  const save = el("button", { class: "btn", type: "button", text: "Save settings", onclick: async () => {
-    const patch = Object.fromEntries(fields.map(f => [f.id, Number(f.input.value)]));
-    try { Object.assign(cfg, await api.saveConfig(patch)); msg.textContent = "Saved."; }
-    catch (err) { msg.textContent = err.message; }
-  } });
-  return el("section", { class: "card", "aria-label": "Analysis settings" }, [
-    el("h2", { text: "Analysis" }),
-    el("div", { class: "row" }, fields.map(f => f.node)),
-    el("div", { class: "row center" }, [save, msg]),
   ]);
 }
 

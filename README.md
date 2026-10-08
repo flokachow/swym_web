@@ -113,7 +113,7 @@ problems, not analysis problems.
 | **Drills** | Browse the fifteen drills by fault or kit; open one for how-to, easier/harder variants, and a 3D demo where there is one |
 | **Progress** | Score history and trends, kept in your browser |
 | **Ask** | Questions about technique, answered against your latest analysis |
-| **Settings** | Your key, the model order, frame rate, thresholds, and deleting stored data |
+| **Settings** | Your key, the model to try first, and deleting stored data |
 
 ## The command line
 
@@ -161,7 +161,8 @@ picks the drills; the model writes prose from that list only.
 
 ## Configuration
 
-Settings page, or `python3 -m swimform config`. Stored in
+The defaults suit almost everyone, so the app only exposes the model choice (Settings). The rest is
+`python3 -m swimform config`, or edit the file directly. Stored in
 `~/.config/swimform/config.json` (set `SWIMFORM_HOME` to move it).
 
 | key | default | |

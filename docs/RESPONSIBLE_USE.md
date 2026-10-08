@@ -22,7 +22,7 @@ the app.
   ends.
 - Still images cut from the clip (the evidence stills and annotated frames) are
   kept in swimform's folder so the results page can show them, then deleted
-  after the retention time in Settings (24 hours by default). You can delete
+  after the retention time (24 hours by default; `retentionHours` in the config file). You can delete
   them at any time from Settings, or by deleting `~/.config/swimform/overlays`.
 - There is no swimform server, no account, no analytics and no telemetry.
 - Your progress history (scores only, no images) and your key live in your
@@ -104,8 +104,8 @@ What follows in practice:
 | What | Where | How long | How to remove |
 |---|---|---|---|
 | Uploaded clip (shortened copy) | `~/.config/swimform/uploads` | until the analysis ends | automatic |
-| Evidence stills, annotated frames | `~/.config/swimform/overlays` | 24 h (Settings) | Settings, "Delete stored images now" |
-| Settings (models, fps…) | `~/.config/swimform/config.json` | until you delete it | delete the file |
+| Evidence stills, annotated frames | `~/.config/swimform/overlays` | 24 h (`retentionHours`) | Settings, "Delete stored images now" |
+| Settings (model order, fps…) | `~/.config/swimform/config.json` | until you delete it | delete the file |
 | Gemini key | browser tab, or browser storage if you tick "Remember" | tab / until removed | Settings, "Remove key" |
 | Score history | browser storage | until deleted | Progress or Settings |
 | Notice accepted | browser storage | until deleted | Settings, "Forget everything" |
